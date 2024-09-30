@@ -1,3 +1,6 @@
+#ifndef CONFIG_H
+#define CONFIG_H
+
 #include <iostream>
 #include <string>
 //#include <vector>
@@ -9,3 +12,5 @@ struct Config
     char sort = 'b'; // default sort is by bytes (-b)
     int time = 1; // default time is 1 second (-t 1) (extra optional argument)
 };
+
+#endif // CONFIG_H
