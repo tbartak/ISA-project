@@ -5,6 +5,7 @@
 #include <memory> // std::unique_ptr
 #include "config.h"
 
+// function that will parse arguments entered using the command line
 std::unique_ptr<Config> parse_args(int argc, char *argv[])
 {
     std::unique_ptr<Config> config = std::make_unique<Config>();

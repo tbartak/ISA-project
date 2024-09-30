@@ -3,6 +3,7 @@
 #include <string>
 // #include <memory> // std::unique_ptr
 
+// function that will open the selected interface and exit with an error if the interface is not available
 pcap_t *open_interface(std::string &interface)
 {
     char errbuf[PCAP_ERRBUF_SIZE];
@@ -32,4 +33,39 @@ pcap_t *open_interface(std::string &interface)
     std::cout << "Interface " << interface << " opened." << std::endl;
 
     return handle;
+}
+
+// function that will close the selected interface (TODO: later needs to be called after pressing Ctrl+C, so that no allocated memory is left behind)
+void close_interface(pcap_t *handle)
+{
+    pcap_close(handle);
+    std::cout << "Interface closed" << std::endl;
+}
+
+// function that will handle each packet captured and print/save results into a structure
+void packet_handler()
+{
+    std::cout << "Got a packet" << std::endl;
+}
+
+// function that will capture packets
+void packet_capture(pcap_t *handle)
+{
+    std::cout << "Packet Capture Starts..." << std::endl;
+
+    struct pcap_pkthdr header;
+    const u_char *packet;
+
+    // will capture packets until the program is terminated
+    while (true)
+    {
+        packet = pcap_next(handle, &header);
+        // packet will be NULL if no packet is captured
+        if (packet == NULL)
+        {
+            continue;
+        }
+
+        packet_handler();
+    }
 }
