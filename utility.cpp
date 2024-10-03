@@ -10,6 +10,7 @@
 
 // #include <memory> // std::unique_ptr
 
+std::atomic<bool> stop_flag(false);
 
 // all packets will be stored using a hash map
 std::unordered_map<std::string, sPacket> packet_table;
@@ -72,7 +73,7 @@ void print_packet(std::string key)
 // timer function that will be called every second (or other time specified by -t) to refresh the screen
 void timer(int time)
 {
-    while (true)
+    while (!stop_flag.load())
     {
         // TODO: finish timer function
         // wait for the specified time
@@ -83,6 +84,24 @@ void timer(int time)
         // clear_data();
         std::cout << "---------------------------------------------------------------" << std::endl;
     }
+}
+
+// function that looks for Ctrl+C and sets the stop flag to true
+void signal_handler(int signal)
+{
+    if (signal == SIGINT)
+    {
+        std::cout << "\nSIGINT received, stopping capture and cleaning up..." << std::endl;
+        stop_flag = true;
+    }
+}
+
+// function that will shutdown the program gracefully
+void shutdown(pcap_t *handle, std::thread &timer_thread)
+{
+    timer_thread.join();
+    close_interface(handle);
+    clear_packets();
 }
 
 
@@ -150,7 +169,6 @@ void packet_handler(struct pcap_pkthdr* pkthdr, const u_char *packet) {
         newPacket->src_ip = inet_ntoa(ip_header->ip_src); // TODO: only works for IPv4, need support for IPv6
         newPacket->dst_ip = inet_ntoa(ip_header->ip_dst); // TODO: only works for IPv4, need support for IPv6
 
-
         // Check protocol
         if (ip_header->ip_p == IPPROTO_TCP) {
             // Extract the TCP header
@@ -205,7 +223,7 @@ void packet_capture(pcap_t *handle)
     const u_char *packet;
 
     // will capture packets until the program is terminated
-    while (true)
+    while (!stop_flag.load())
     {
         // blocking/non-blocking?
         packet = pcap_next(handle, &header);
@@ -213,6 +231,13 @@ void packet_capture(pcap_t *handle)
         if (packet == NULL)
         {
             continue;
+        }
+
+        // signal to shutdown the program received // TODO: but it is sometimes delayed, so it will still capture some packets after the signal is received
+        if (stop_flag.load())
+        {
+            return;
+            // shutdown();
         }
 
         packet_handler(&header, packet);

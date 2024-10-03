@@ -9,16 +9,24 @@ int main(int argc, char *argv[])
     // check selected interface
     pcap_t *handle = open_interface(config->interface);
 
+    signal(SIGINT, signal_handler);
+
     // TODO: need to handle timer that will refresh the screen every second (or the specified time)
     std::thread timer_thread(timer, config->time);
 
     // capture packets
     packet_capture(handle);
 
-    // after graceful shutdown
+    // after receiving SIGINT, stop the program
+    std::cout << "Program stopped by user." << std::endl;
     timer_thread.join();
     close_interface(handle);
     clear_packets();
+    // shutdown();
+    
+    
+
+    std::cout << "Program finished. Resources cleaned." << std::endl;
 
     // TODO: Implement the rest of the program
     // close gracefully (Ctrl+C)
@@ -27,8 +35,6 @@ int main(int argc, char *argv[])
     // refresh every 1 second
 
     // sort method (bytes or packets)
-
-    // time interval (extra)
 
     // check for memory leaks
 

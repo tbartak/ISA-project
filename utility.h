@@ -8,6 +8,10 @@
 #include <unordered_map>
 #include <chrono> // std::chrono::system_clock
 #include <thread> // std::this_thread::sleep_for
+#include <signal.h> // signal handling
+#include "config.h"
+#include <atomic>
+
 
 // structure for individual packets
 struct sPacket {
@@ -23,14 +27,19 @@ struct sPacket {
     std::string timestamp;
 };
 
+extern std::atomic<bool> stop_flag;  // Declare the stop flag as external
+
 void add_packet(std::string key, sPacket packet);
 void clear_data();
 void clear_packets();
 void print_packets();
+void print_packet(std::string key);
 void timer(int time);
+void signal_handler(int signal);
+void shutdown();
 pcap_t *open_interface(std::string &interface);
 void close_interface(pcap_t *handle);
 void packet_capture(pcap_t *handle);
-void packet_handler();
+void packet_handler(struct pcap_pkthdr* pkthdr, const u_char *packet);
 
 #endif // UTILITY_H
