@@ -10,11 +10,13 @@ int main(int argc, char *argv[])
     pcap_t *handle = open_interface(config->interface);
 
     // TODO: need to handle timer that will refresh the screen every second (or the specified time)
+    std::thread timer_thread(timer, config->time);
 
     // capture packets
     packet_capture(handle);
 
     // after graceful shutdown
+    timer_thread.join();
     close_interface(handle);
     clear_packets();
 

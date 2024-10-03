@@ -17,7 +17,17 @@ std::unordered_map<std::string, sPacket> packet_table;
 // function to add a packet to the hash map
 void add_packet(std::string key, sPacket packet)
 {
-    packet_table[key] = packet;
+    // if the packet is not already in the hash map, add it, if it is, update the values
+    packet_table[key].src_ip = packet.src_ip;
+    packet_table[key].src_port = packet.src_port;
+    packet_table[key].dst_ip = packet.dst_ip;
+    packet_table[key].dst_port = packet.dst_port;
+    packet_table[key].protocol = packet.protocol;
+    packet_table[key].length += packet.length;
+    packet_table[key].packet_count += 1;
+    packet_table[key].rx += packet.rx;
+    packet_table[key].tx += packet.tx;
+    packet_table[key].timestamp = packet.timestamp;
 }
 
 // function to clear data transmitted and received
@@ -44,11 +54,11 @@ void print_packets()
     {
         if (packet.second.src_port == -1 || packet.second.dst_port == -1)
         {
-            std::cout << "Source IP: " << packet.second.src_ip << " Destination IP: " << packet.second.dst_ip << " Protocol: " << packet.second.protocol << " Length: " << packet.second.length << " RX: " << packet.second.rx << " TX: " << packet.second.tx << " Timestamp: " << packet.second.timestamp << std::endl;
+            std::cout << "Source IP: " << packet.second.src_ip << " Destination IP: " << packet.second.dst_ip << " Protocol: \n" << packet.second.protocol << " Length: " << packet.second.length << " Bytes " << " RX: " << packet.second.rx << " Bytes " << " TX: " << packet.second.tx << " Bytes " << "Count of packets: " << packet.second.packet_count << " Timestamp: " << packet.second.timestamp << std::endl;
         }
         else
         {
-        std::cout << "Source IP: " << packet.second.src_ip << " Source Port: " << packet.second.src_port << " Destination IP: " << packet.second.dst_ip << " Destination Port: " << packet.second.dst_port << " Protocol: " << packet.second.protocol << " Length: " << packet.second.length << " RX: " << packet.second.rx << " TX: " << packet.second.tx << " Timestamp: " << packet.second.timestamp << std::endl;
+        std::cout << "Source IP: " << packet.second.src_ip << " Source Port: " << packet.second.src_port << " Destination IP: " << packet.second.dst_ip << " Destination Port: " << packet.second.dst_port << " Protocol: \n" << packet.second.protocol << " Length: " << packet.second.length << " Bytes " << " RX: " << packet.second.rx << " Bytes " << " TX: " << packet.second.tx << " Bytes " << "Count of packets: " << packet.second.packet_count << " Timestamp: " << packet.second.timestamp << std::endl;
         }
     }
 }
@@ -56,7 +66,7 @@ void print_packets()
 // TODO: debug function for printing a single packet
 void print_packet(std::string key) 
 {
-    std::cout << "Source IP: " << packet_table[key].src_ip << " Source Port: " << packet_table[key].src_port << " Destination IP: " << packet_table[key].dst_ip << " Destination Port: " << packet_table[key].dst_port << " Protocol: " << packet_table[key].protocol << " Length: " << packet_table[key].length << " Bytes " << " RX: " << packet_table[key].rx << " Bytes " << " TX: " << packet_table[key].tx << " Bytes " << " Timestamp: " << packet_table[key].timestamp << std::endl;
+    std::cout << "Source IP: " << packet_table[key].src_ip << " Source Port: " << packet_table[key].src_port << " Destination IP: " << packet_table[key].dst_ip << " Destination Port: " << packet_table[key].dst_port << " Protocol: " << packet_table[key].protocol << " Length: " << packet_table[key].length << " Bytes " << " RX: " << packet_table[key].rx << " Bytes " << " TX: " << packet_table[key].tx << " Bytes " << "Count of packets: " << packet_table[key].packet_count << " Timestamp: " << packet_table[key].timestamp << std::endl;
 }
 
 // timer function that will be called every second (or other time specified by -t) to refresh the screen
@@ -66,10 +76,12 @@ void timer(int time)
     {
         // TODO: finish timer function
         // wait for the specified time
+        std::this_thread::sleep_for(std::chrono::seconds(time));
         // clear screen before printing new data
-        std::cout << "TEST MESSAGE" << std::endl;
-        // print_packets();
+        std::cout << "-------------------REFRESH HAPPENS NOW!------------------------" << std::endl;
+        print_packets();
         // clear_data();
+        std::cout << "---------------------------------------------------------------" << std::endl;
     }
 }
 
@@ -124,6 +136,7 @@ void packet_handler(struct pcap_pkthdr* pkthdr, const u_char *packet) {
 
     // Packet length 
     newPacket->length = pkthdr->len;
+    std::cout << "Packet length: " << newPacket->length << std::endl;
 
     // TODO: rx and tx (will depend based on if its incoming or outgoing packet)
     newPacket->rx = 0;
@@ -136,7 +149,6 @@ void packet_handler(struct pcap_pkthdr* pkthdr, const u_char *packet) {
         // Get source and destination IP addresses
         newPacket->src_ip = inet_ntoa(ip_header->ip_src); // TODO: only works for IPv4, need support for IPv6
         newPacket->dst_ip = inet_ntoa(ip_header->ip_dst); // TODO: only works for IPv4, need support for IPv6
-
 
 
         // Check protocol
@@ -163,11 +175,24 @@ void packet_handler(struct pcap_pkthdr* pkthdr, const u_char *packet) {
         newPacket->timestamp = ctime((const time_t*)&pkthdr->ts.tv_sec);
 
         // add packet to the hash map // TODO: include ports for more specific key for the exact communication, but ports are now integers and also only optional, so they arent included all the time, but only for protocols like TCP/UDP, ...
-        add_packet(newPacket->src_ip /*+ newPacket->src_port*/ + newPacket->dst_ip /*+ newPacket->dst_port*/ + newPacket->protocol, *newPacket);
+        if (newPacket->src_port == -1 && newPacket->dst_port == -1)
+        {
+            add_packet(newPacket->src_ip /*+ newPacket->src_port*/ + newPacket->dst_ip /*+ newPacket->dst_port*/ + newPacket->protocol, *newPacket);
+        }
+        else
+        {
+            add_packet(newPacket->src_ip + std::to_string(newPacket->src_port) + newPacket->dst_ip + std::to_string(newPacket->dst_port) + newPacket->protocol, *newPacket);
+        }
 
-        // print packet
-        print_packet(newPacket->src_ip /*+ newPacket->src_port*/ + newPacket->dst_ip /*+ newPacket->dst_port*/ + newPacket->protocol);
-
+        // print current packet
+        if (newPacket->src_port == -1 && newPacket->dst_port == -1)
+        {
+            print_packet(newPacket->src_ip /*+ newPacket->src_port*/ + newPacket->dst_ip /*+ newPacket->dst_port*/ + newPacket->protocol);
+        }
+        else
+        {
+            print_packet(newPacket->src_ip + std::to_string(newPacket->src_port) + newPacket->dst_ip + std::to_string(newPacket->dst_port) + newPacket->protocol);
+        }
 
 }
 
@@ -191,5 +216,7 @@ void packet_capture(pcap_t *handle)
         }
 
         packet_handler(&header, packet);
+
+
     }
 }

@@ -6,6 +6,8 @@
 // #include <memory> // std::unique_ptr
 #include <pcap.h>
 #include <unordered_map>
+#include <chrono> // std::chrono::system_clock
+#include <thread> // std::this_thread::sleep_for
 
 // structure for individual packets
 struct sPacket {
@@ -14,9 +16,10 @@ struct sPacket {
     std::string dst_ip;
     int dst_port = -1;
     std::string protocol;
-    int length;
-    int rx;
-    int tx;
+    int length = 0;
+    int packet_count = 0;
+    int rx = 0;
+    int tx = 0;
     std::string timestamp;
 };
 
