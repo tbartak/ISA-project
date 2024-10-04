@@ -8,7 +8,18 @@
 #include <netinet/udp.h> // struct udphdr
 #include <arpa/inet.h> // inet_ntop
 
+
 // #include <memory> // std::unique_ptr
+
+// columns widths for ncurses
+#define SRC_IP_COL 0
+#define DST_IP_COL 35
+#define PROTOCOL_COL 75
+#define LENGTH_COL 90
+#define RX_COL 105
+#define TX_COL 120
+#define PACKET_COUNT_COL 135
+#define TIMESTAMP_COL 150
 
 std::atomic<bool> stop_flag(false);
 
@@ -48,20 +59,79 @@ void clear_packets()
     packet_table.clear();
 }
 
-// function to print all packets in the hash map
+// // function to print all packets in the hash map // TODO: for testing purposes, will be removed later
+// void print_packets()
+// {
+//     for (auto &packet : packet_table)
+//     {
+//         if (packet.second.src_port == -1 || packet.second.dst_port == -1)
+//         {
+//             std::cout << "Source IP: " << packet.second.src_ip << " Destination IP: " << packet.second.dst_ip << " Protocol: \n" << packet.second.protocol << " Length: " << packet.second.length << " Bytes " << " RX: " << packet.second.rx << " Bytes " << " TX: " << packet.second.tx << " Bytes " << "Count of packets: " << packet.second.packet_count << " Timestamp: " << packet.second.timestamp << std::endl;
+//         }
+//         else
+//         {
+//         std::cout << "Source IP: " << packet.second.src_ip << " Source Port: " << packet.second.src_port << " Destination IP: " << packet.second.dst_ip << " Destination Port: " << packet.second.dst_port << " Protocol: \n" << packet.second.protocol << " Length: " << packet.second.length << " Bytes " << " RX: " << packet.second.rx << " Bytes " << " TX: " << packet.second.tx << " Bytes " << "Count of packets: " << packet.second.packet_count << " Timestamp: " << packet.second.timestamp << std::endl;
+//         }
+//     }
+// }
+
+// function to print all packets in the hash map using ncurses
 void print_packets()
 {
+    clear(); // clear the screen
+
+    int row = 0;
+
+    // header of the table
+    mvprintw(row, SRC_IP_COL, "Src IP:port");
+    mvprintw(row, DST_IP_COL, "Dst IP:port");
+    mvprintw(row, PROTOCOL_COL, "Proto");
+    mvprintw(row, LENGTH_COL, "Length");
+    mvprintw(row, RX_COL, "RX Bytes");
+    mvprintw(row, TX_COL, "TX Bytes");
+    mvprintw(row, PACKET_COUNT_COL, "Packet Count");
+    mvprintw(row, TIMESTAMP_COL, "Timestamp");
+
+    row++;
+
+
     for (auto &packet : packet_table)
-    {
-        if (packet.second.src_port == -1 || packet.second.dst_port == -1)
-        {
-            std::cout << "Source IP: " << packet.second.src_ip << " Destination IP: " << packet.second.dst_ip << " Protocol: \n" << packet.second.protocol << " Length: " << packet.second.length << " Bytes " << " RX: " << packet.second.rx << " Bytes " << " TX: " << packet.second.tx << " Bytes " << "Count of packets: " << packet.second.packet_count << " Timestamp: " << packet.second.timestamp << std::endl;
-        }
-        else
-        {
-        std::cout << "Source IP: " << packet.second.src_ip << " Source Port: " << packet.second.src_port << " Destination IP: " << packet.second.dst_ip << " Destination Port: " << packet.second.dst_port << " Protocol: \n" << packet.second.protocol << " Length: " << packet.second.length << " Bytes " << " RX: " << packet.second.rx << " Bytes " << " TX: " << packet.second.tx << " Bytes " << "Count of packets: " << packet.second.packet_count << " Timestamp: " << packet.second.timestamp << std::endl;
+    {        
+        // print only packets that have some transmission in the last second
+        if (packet.second.length != 0)
+        {      
+            if (packet.second.src_port == -1 || packet.second.dst_port == -1)
+            {
+                mvprintw(row, SRC_IP_COL, "%s", packet.second.src_ip.c_str());
+                mvprintw(row, DST_IP_COL, "%s", packet.second.dst_ip.c_str());
+                mvprintw(row, PROTOCOL_COL, "%s", packet.second.protocol.c_str());
+                mvprintw(row, LENGTH_COL, "%d", packet.second.length);
+                mvprintw(row, RX_COL, "%d", packet.second.rx);
+                mvprintw(row, TX_COL, "%d", packet.second.tx);
+                mvprintw(row, PACKET_COUNT_COL, "%d", packet.second.packet_count);
+                mvprintw(row, TIMESTAMP_COL, "%s", packet.second.timestamp.c_str());
+
+                
+                // mvprintw(row, 0, "%s %s %s %d %d %d %d %s", packet.second.src_ip.c_str(), packet.second.dst_ip.c_str(), packet.second.protocol.c_str(), packet.second.length, packet.second.rx, packet.second.tx, packet.second.packet_count, packet.second.timestamp.c_str());
+            }
+            else
+            {
+                // add port to the IP address of the source and destination
+                mvprintw(row, SRC_IP_COL, "%s:%d", packet.second.src_ip.c_str(), packet.second.src_port);
+                mvprintw(row, DST_IP_COL, "%s:%d", packet.second.dst_ip.c_str(), packet.second.dst_port);
+                mvprintw(row, PROTOCOL_COL, "%s", packet.second.protocol.c_str());
+                mvprintw(row, LENGTH_COL, "%d", packet.second.length);
+                mvprintw(row, RX_COL, "%d", packet.second.rx);
+                mvprintw(row, TX_COL, "%d", packet.second.tx);
+                mvprintw(row, PACKET_COUNT_COL, "%d", packet.second.packet_count);
+                mvprintw(row, TIMESTAMP_COL, "%s", packet.second.timestamp.c_str());
+
+                // mvprintw(row, 0, "%s %d %s %d %s %d %d %d %d %s", packet.second.src_ip.c_str(), packet.second.src_port, packet.second.dst_ip.c_str(), packet.second.dst_port, packet.second.protocol.c_str(), packet.second.length, packet.second.rx, packet.second.tx, packet.second.packet_count, packet.second.timestamp.c_str());
+            }
+            row++;
         }
     }
+    refresh();
 }
 
 // TODO: debug function for printing a single packet
@@ -79,10 +149,10 @@ void timer(int time)
         // wait for the specified time
         std::this_thread::sleep_for(std::chrono::seconds(time));
         // clear screen before printing new data
-        std::cout << "-------------------REFRESH HAPPENS NOW!------------------------" << std::endl;
+        // std::cout << "-------------------REFRESH HAPPENS NOW!------------------------" << std::endl;
         print_packets();
-        // clear_data();
-        std::cout << "---------------------------------------------------------------" << std::endl;
+        clear_data();
+        // std::cout << "---------------------------------------------------------------" << std::endl;
     }
 }
 
@@ -91,7 +161,7 @@ void signal_handler(int signal)
 {
     if (signal == SIGINT)
     {
-        std::cout << "\nSIGINT received, stopping capture and cleaning up..." << std::endl;
+        // std::cout << "\nSIGINT received, stopping capture and cleaning up..." << std::endl;
         stop_flag = true;
     }
 }
@@ -161,7 +231,11 @@ void packet_handler(struct pcap_pkthdr* pkthdr, const u_char *packet) {
     newPacket->rx = 0;
     newPacket->tx = 0;
 
+    // // Extract the Ethernet header
+    // const struct ether_header *eth_header = (struct ether_header*)packet;
 
+    // // Check if the packet is an IP packet
+    // if (ntohs(eth_header->ether_type) != ETHERTYPE_IP) {
         // Extract the IP header
         const struct ip *ip_header = (struct ip*)(packet + 14); // IP header is after ethernet header, which is 14 bytes
 
@@ -186,7 +260,7 @@ void packet_handler(struct pcap_pkthdr* pkthdr, const u_char *packet) {
         // TODO: rest of the supported protocols
         else {
             // TODO: for testing purposes, if its unknown protocol, we wont be able to output anything, but for other currently unsupported protocols like ICMP, we will output the correct protocol name
-            newPacket->protocol = "Unknown/Unsupported Protocol";
+            newPacket->protocol = "---";
         }
 
         // Timestamp
@@ -211,7 +285,7 @@ void packet_handler(struct pcap_pkthdr* pkthdr, const u_char *packet) {
         {
             print_packet(newPacket->src_ip + std::to_string(newPacket->src_port) + newPacket->dst_ip + std::to_string(newPacket->dst_port) + newPacket->protocol);
         }
-
+    // }
 }
 
 // function that will capture packets

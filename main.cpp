@@ -4,6 +4,11 @@
 
 int main(int argc, char *argv[])
 {
+    
+    initscr();
+    cbreak(); // disable line buffering
+    noecho(); // disable echoing of characters
+
     std::unique_ptr<Config> config = parse_args(argc, argv);
 
     // check selected interface
@@ -23,6 +28,8 @@ int main(int argc, char *argv[])
     close_interface(handle);
     clear_packets();
     // shutdown();
+
+    endwin();
     
     
 

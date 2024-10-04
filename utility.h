@@ -11,6 +11,7 @@
 #include <signal.h> // signal handling
 #include "config.h"
 #include <atomic>
+#include <ncurses.h>
 
 
 // structure for individual packets
