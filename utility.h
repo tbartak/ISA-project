@@ -14,6 +14,7 @@
 #include <ncurses.h>
 #include <algorithm> // std::sort
 #include <vector>
+#include <netinet/ip6.h> // struct ip6_hdr
 
 
 // structure for individual packets

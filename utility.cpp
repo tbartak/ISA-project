@@ -312,24 +312,17 @@ void packet_handler(struct pcap_pkthdr* pkthdr, const u_char *packet) {
     newPacket->length = pkthdr->len;
     std::cout << "Packet length: " << newPacket->length << std::endl;
 
-    // // Extract the Ethernet header
-    // const struct ether_header *eth_header = (struct ether_header*)packet;
+    // Extract the Ethernet header
+    const struct ether_header *eth_header = (struct ether_header*)packet;
 
-    // // Check if the packet is an IP packet
-    // if (ntohs(eth_header->ether_type) != ETHERTYPE_IP) {
+    // Check if the packet is an IPv4 packet
+    if (ntohs(eth_header->ether_type) == ETHERTYPE_IP) {
         // Extract the IP header
-        const struct ip *ip_header = (struct ip*)(packet + 14); // IP header is after ethernet header, which is 14 bytes
+        const struct ip *ip_header = (struct ip*)(packet + sizeof(struct ether_header)); // IP header is after ethernet header, which is 14 bytes
 
         // Get source and destination IP addresses
         newPacket->src_ip = inet_ntoa(ip_header->ip_src); // TODO: only works for IPv4, need support for IPv6
         newPacket->dst_ip = inet_ntoa(ip_header->ip_dst); // TODO: only works for IPv4, need support for IPv6
-
-        // // TODO: rx and tx (will depend based on if its incoming or outgoing packet)
-        newPacket->rx = 0;
-        newPacket->tx = 0;
-
-        // differentiate between incoming and outgoing traffic // TODO: after figuring out how to find local_ip properly, uncomment this
-        // rx_tx(*newPacket);
 
         // Check protocol
         if (ip_header->ip_p == IPPROTO_TCP) {
@@ -343,13 +336,54 @@ void packet_handler(struct pcap_pkthdr* pkthdr, const u_char *packet) {
             newPacket->protocol = "UDP";
             newPacket->src_port = ntohs(udp_header->uh_sport);
             newPacket->dst_port = ntohs(udp_header->uh_dport);
-        } 
-        
+        }
         // TODO: rest of the supported protocols
         else {
             // TODO: for testing purposes, if its unknown protocol, we wont be able to output anything, but for other currently unsupported protocols like ICMP, we will output the correct protocol name
             newPacket->protocol = "---";
         }
+    }
+    else if (ntohs(eth_header->ether_type) == ETHERTYPE_IPV6) { // TODO: needs to be tested, seems to be working though
+        // Extract the IPv6 header
+        const struct ip6_hdr *ip6_header = (struct ip6_hdr*)(packet + sizeof(struct ether_header)); // IPv6 header is after ethernet header, which is 14 bytes
+        
+        char src_ip[INET6_ADDRSTRLEN];
+        char dst_ip[INET6_ADDRSTRLEN];
+        
+        inet_ntop(AF_INET6, &(ip6_header->ip6_src), src_ip, INET6_ADDRSTRLEN);
+        inet_ntop(AF_INET6, &(ip6_header->ip6_dst), dst_ip, INET6_ADDRSTRLEN);
+
+        newPacket->src_ip = src_ip;
+        newPacket->dst_ip = dst_ip;
+
+        // Check protocol
+        if (ip6_header->ip6_nxt == IPPROTO_TCP) {
+            // Extract the TCP header
+            // const struct tcphdr* tcp_header = (struct tcphdr*)(packet + sizeof(struct ether_header) + sizeof(struct ip));
+            const struct tcphdr* tcp_header = (struct tcphdr*)(packet + sizeof(struct ether_header) + sizeof(struct ip6_hdr));
+            newPacket->protocol = "TCP";
+            newPacket->src_port = ntohs(tcp_header->th_sport);
+            newPacket->dst_port = ntohs(tcp_header->th_dport);
+        } else if (ip6_header->ip6_nxt == IPPROTO_UDP) {
+            // const struct udphdr* udp_header = (struct udphdr*)(packet + sizeof(struct ether_header) + sizeof(struct ip));
+            const struct udphdr* udp_header = (struct udphdr*)(packet + sizeof(struct ether_header) + sizeof(struct ip6_hdr));
+            newPacket->protocol = "UDP";
+            newPacket->src_port = ntohs(udp_header->uh_sport);
+            newPacket->dst_port = ntohs(udp_header->uh_dport);
+        }
+        // TODO: rest of the supported protocols
+        else {
+            // TODO: for testing purposes, if its unknown protocol, we wont be able to output anything, but for other currently unsupported protocols like ICMP, we will output the correct protocol name
+            newPacket->protocol = "---";
+        }
+    }
+
+        // // TODO: rx and tx (will depend based on if its incoming or outgoing packet)
+        newPacket->rx = 0;
+        newPacket->tx = 0;
+
+        // differentiate between incoming and outgoing traffic // TODO: after figuring out how to find local_ip properly, uncomment this
+        // rx_tx(*newPacket);
 
         // Timestamp
         newPacket->timestamp = ctime((const time_t*)&pkthdr->ts.tv_sec);
