@@ -21,10 +21,14 @@
 #define PACKET_COUNT_COL 135
 #define TIMESTAMP_COL 150
 
+std::string local_ip = "127.0.0.1"; // TODO: get local IP address
+
 std::atomic<bool> stop_flag(false);
 
 // all packets will be stored using a hash map
 std::unordered_map<std::string, sPacket> packet_table;
+
+std::vector<sPacket> top_connections;
 
 // function to add a packet to the hash map
 void add_packet(std::string key, sPacket packet)
@@ -50,7 +54,11 @@ void clear_data()
         packet.second.length = 0;
         packet.second.rx = 0;
         packet.second.tx = 0;
+        packet.second.packet_count = 0;
     }
+
+    // clear table of top connections
+    top_connections.clear();
 }
 
 // function to clear the hash map
@@ -95,21 +103,21 @@ void print_packets()
     row++;
 
 
-    for (auto &packet : packet_table)
+    for (auto &packet : top_connections)
     {        
         // print only packets that have some transmission in the last second
-        if (packet.second.length != 0)
+        if (packet.length != 0)
         {      
-            if (packet.second.src_port == -1 || packet.second.dst_port == -1)
+            if (packet.src_port == -1 || packet.dst_port == -1)
             {
-                mvprintw(row, SRC_IP_COL, "%s", packet.second.src_ip.c_str());
-                mvprintw(row, DST_IP_COL, "%s", packet.second.dst_ip.c_str());
-                mvprintw(row, PROTOCOL_COL, "%s", packet.second.protocol.c_str());
-                mvprintw(row, LENGTH_COL, "%d", packet.second.length);
-                mvprintw(row, RX_COL, "%d", packet.second.rx);
-                mvprintw(row, TX_COL, "%d", packet.second.tx);
-                mvprintw(row, PACKET_COUNT_COL, "%d", packet.second.packet_count);
-                mvprintw(row, TIMESTAMP_COL, "%s", packet.second.timestamp.c_str());
+                mvprintw(row, SRC_IP_COL, "%s", packet.src_ip.c_str());
+                mvprintw(row, DST_IP_COL, "%s", packet.dst_ip.c_str());
+                mvprintw(row, PROTOCOL_COL, "%s", packet.protocol.c_str());
+                mvprintw(row, LENGTH_COL, "%d", packet.length);
+                mvprintw(row, RX_COL, "%d", packet.rx);
+                mvprintw(row, TX_COL, "%d", packet.tx);
+                mvprintw(row, PACKET_COUNT_COL, "%d", packet.packet_count);
+                mvprintw(row, TIMESTAMP_COL, "%s", packet.timestamp.c_str());
 
                 
                 // mvprintw(row, 0, "%s %s %s %d %d %d %d %s", packet.second.src_ip.c_str(), packet.second.dst_ip.c_str(), packet.second.protocol.c_str(), packet.second.length, packet.second.rx, packet.second.tx, packet.second.packet_count, packet.second.timestamp.c_str());
@@ -117,14 +125,14 @@ void print_packets()
             else
             {
                 // add port to the IP address of the source and destination
-                mvprintw(row, SRC_IP_COL, "%s:%d", packet.second.src_ip.c_str(), packet.second.src_port);
-                mvprintw(row, DST_IP_COL, "%s:%d", packet.second.dst_ip.c_str(), packet.second.dst_port);
-                mvprintw(row, PROTOCOL_COL, "%s", packet.second.protocol.c_str());
-                mvprintw(row, LENGTH_COL, "%d", packet.second.length);
-                mvprintw(row, RX_COL, "%d", packet.second.rx);
-                mvprintw(row, TX_COL, "%d", packet.second.tx);
-                mvprintw(row, PACKET_COUNT_COL, "%d", packet.second.packet_count);
-                mvprintw(row, TIMESTAMP_COL, "%s", packet.second.timestamp.c_str());
+                mvprintw(row, SRC_IP_COL, "%s:%d", packet.src_ip.c_str(), packet.src_port);
+                mvprintw(row, DST_IP_COL, "%s:%d", packet.dst_ip.c_str(), packet.dst_port);
+                mvprintw(row, PROTOCOL_COL, "%s", packet.protocol.c_str());
+                mvprintw(row, LENGTH_COL, "%d", packet.length);
+                mvprintw(row, RX_COL, "%d", packet.rx);
+                mvprintw(row, TX_COL, "%d", packet.tx);
+                mvprintw(row, PACKET_COUNT_COL, "%d", packet.packet_count);
+                mvprintw(row, TIMESTAMP_COL, "%s", packet.timestamp.c_str());
 
                 // mvprintw(row, 0, "%s %d %s %d %s %d %d %d %d %s", packet.second.src_ip.c_str(), packet.second.src_port, packet.second.dst_ip.c_str(), packet.second.dst_port, packet.second.protocol.c_str(), packet.second.length, packet.second.rx, packet.second.tx, packet.second.packet_count, packet.second.timestamp.c_str());
             }
@@ -141,7 +149,7 @@ void print_packet(std::string key)
 }
 
 // timer function that will be called every second (or other time specified by -t) to refresh the screen
-void timer(int time)
+void timer(int time, char sort)
 {
     while (!stop_flag.load())
     {
@@ -150,8 +158,10 @@ void timer(int time)
         std::this_thread::sleep_for(std::chrono::seconds(time));
         // clear screen before printing new data
         // std::cout << "-------------------REFRESH HAPPENS NOW!------------------------" << std::endl;
+        search_most_traffic();
+        sort_most_traffic(top_connections, sort);
         print_packets();
-        clear_data();
+        clear_data(); // TODO: or clear_packets()? to clear all data of the packets? could be better for memory management
         // std::cout << "---------------------------------------------------------------" << std::endl;
     }
 }
@@ -172,6 +182,81 @@ void shutdown(pcap_t *handle, std::thread &timer_thread)
     timer_thread.join();
     close_interface(handle);
     clear_packets();
+}
+
+// function that will search for the top 10 connections with most traffic
+void search_most_traffic()
+{
+    for (auto &packet : packet_table)
+    {
+        create_most_traffic_array(top_connections, packet.second);
+    }
+}
+
+// function that will create a table of top 10 connections with most traffic
+void create_most_traffic_array(std::vector<sPacket> &top_connections, sPacket packet)
+{
+    // if the table is empty, add the first packet
+    if (top_connections.empty())
+    {
+        top_connections.push_back(packet);
+    }
+    else
+    {
+        // if the table is not full yet, add the packet
+        if (top_connections.size() < 10)
+        {
+            top_connections.push_back(packet);
+        }
+        else
+        {
+            // if the table is full, check if the packet has more traffic than the smallest packet in the table
+            for (auto &current_packet : top_connections)
+            {
+                if (packet.length > current_packet.length)
+                {
+                    current_packet = packet;
+                    break;
+                }
+            }
+        }
+    }
+}
+
+// function that will sort the top 10 connections with most traffic based on the -s argument (bytes or packets)
+void sort_most_traffic(std::vector<sPacket> &top_connections, char sort_by)
+{
+    if (sort_by == 'b')
+    {
+        std::sort(top_connections.begin(), top_connections.end(), [](sPacket a, sPacket b) { return a.length > b.length; }); // TODO: sort not based on length but Rx+Tx
+    }
+    else if (sort_by == 'p')
+    {
+        std::sort(top_connections.begin(), top_connections.end(), [](sPacket a, sPacket b) { return a.packet_count > b.packet_count; });
+    }
+    else
+    {
+        std::cerr << "Invalid argument for sorting the top connections." << std::endl;
+        exit(EXIT_FAILURE);
+    }
+}
+
+// function that will differentiate between incoming and outgoing traffic
+void rx_tx(sPacket &packet)
+{
+    if (packet.dst_ip == local_ip)
+    {
+        packet.rx = packet.length;
+    }
+    else if (packet.src_ip == local_ip)
+    {
+        packet.tx = packet.length;
+    }
+    else
+    {
+        std::cerr << "Packet is neither incoming nor outgoing." << std::endl;
+        exit(EXIT_FAILURE);
+    }   
 }
 
 
@@ -227,10 +312,6 @@ void packet_handler(struct pcap_pkthdr* pkthdr, const u_char *packet) {
     newPacket->length = pkthdr->len;
     std::cout << "Packet length: " << newPacket->length << std::endl;
 
-    // TODO: rx and tx (will depend based on if its incoming or outgoing packet)
-    newPacket->rx = 0;
-    newPacket->tx = 0;
-
     // // Extract the Ethernet header
     // const struct ether_header *eth_header = (struct ether_header*)packet;
 
@@ -242,6 +323,13 @@ void packet_handler(struct pcap_pkthdr* pkthdr, const u_char *packet) {
         // Get source and destination IP addresses
         newPacket->src_ip = inet_ntoa(ip_header->ip_src); // TODO: only works for IPv4, need support for IPv6
         newPacket->dst_ip = inet_ntoa(ip_header->ip_dst); // TODO: only works for IPv4, need support for IPv6
+
+        // // TODO: rx and tx (will depend based on if its incoming or outgoing packet)
+        newPacket->rx = 0;
+        newPacket->tx = 0;
+
+        // differentiate between incoming and outgoing traffic // TODO: after figuring out how to find local_ip properly, uncomment this
+        // rx_tx(*newPacket);
 
         // Check protocol
         if (ip_header->ip_p == IPPROTO_TCP) {
@@ -292,6 +380,9 @@ void packet_handler(struct pcap_pkthdr* pkthdr, const u_char *packet) {
 void packet_capture(pcap_t *handle)
 {
     std::cout << "Packet Capture Starts..." << std::endl;
+
+    // opens the interface that is displayed in the terminal
+    print_packets();
 
     struct pcap_pkthdr header;
     const u_char *packet;

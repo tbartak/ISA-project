@@ -17,7 +17,7 @@ int main(int argc, char *argv[])
     signal(SIGINT, signal_handler);
 
     // TODO: need to handle timer that will refresh the screen every second (or the specified time)
-    std::thread timer_thread(timer, config->time);
+    std::thread timer_thread(timer, config->time, config->sort);
 
     // capture packets
     packet_capture(handle);
@@ -37,9 +37,6 @@ int main(int argc, char *argv[])
 
     // TODO: Implement the rest of the program
     // close gracefully (Ctrl+C)
-    // print results (SRC IP:port, DST IP:port, proto, Rx, Tx) using ncurses (first just basic info)
-
-    // refresh every 1 second
 
     // sort method (bytes or packets)
 

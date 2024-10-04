@@ -12,6 +12,8 @@
 #include "config.h"
 #include <atomic>
 #include <ncurses.h>
+#include <algorithm> // std::sort
+#include <vector>
 
 
 // structure for individual packets
@@ -35,9 +37,12 @@ void clear_data();
 void clear_packets();
 void print_packets();
 void print_packet(std::string key);
-void timer(int time);
+void timer(int time, char sort);
 void signal_handler(int signal);
 void shutdown();
+void search_most_traffic();
+void create_most_traffic_array(std::vector<sPacket> &top_connections, sPacket packet);
+void sort_most_traffic(std::vector<sPacket> &top_connections, char sort);
 pcap_t *open_interface(std::string &interface);
 void close_interface(pcap_t *handle);
 void packet_capture(pcap_t *handle);
