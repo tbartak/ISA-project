@@ -112,8 +112,9 @@ void clear_packets()
 }
 
 // // function to print all packets in the hash map // TODO: for testing purposes, will be removed later
-// void print_packets()
+// void print_packets(int time)
 // {
+//     (void)time; // unused variable
 //     for (auto &packet : packet_table)
 //     {
 //         if (packet.second.src_port == -1 || packet.second.dst_port == -1)
@@ -401,10 +402,8 @@ void close_interface(pcap_t *handle)
 void packet_handler(struct pcap_pkthdr* pkthdr, const u_char *packet, const std::vector<std::string> &local_ips) {
     std::cout << "Got a packet" << std::endl;
 
-    sPacket *newPacket;
-
-    // create a new packet
-    newPacket = new sPacket;
+    // // create a new packet
+    std::unique_ptr<sPacket> newPacket = std::make_unique<sPacket>();
 
     // Packet length 
     newPacket->length = pkthdr->len;
@@ -522,7 +521,7 @@ void packet_handler(struct pcap_pkthdr* pkthdr, const u_char *packet, const std:
             add_packet(newPacket->src_ip + std::to_string(newPacket->src_port) + newPacket->dst_ip + std::to_string(newPacket->dst_port) + newPacket->protocol, *newPacket);
         }
 
-        // print current packet
+        // print current packet // TODO: for testing purposes, will be removed later
         if (newPacket->src_port == -1 && newPacket->dst_port == -1)
         {
             print_packet(newPacket->src_ip /*+ newPacket->src_port*/ + newPacket->dst_ip /*+ newPacket->dst_port*/ + newPacket->protocol);
@@ -531,7 +530,6 @@ void packet_handler(struct pcap_pkthdr* pkthdr, const u_char *packet, const std:
         {
             print_packet(newPacket->src_ip + std::to_string(newPacket->src_port) + newPacket->dst_ip + std::to_string(newPacket->dst_port) + newPacket->protocol);
         }
-    // }
 }
 
 // function that will capture packets

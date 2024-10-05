@@ -3,7 +3,7 @@
 
 #include <iostream>
 #include <string>
-// #include <memory> // std::unique_ptr
+#include <memory> // std::unique_ptr
 #include <pcap.h>
 #include <unordered_map>
 #include <chrono> // std::chrono::system_clock
