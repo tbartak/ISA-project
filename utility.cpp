@@ -21,7 +21,7 @@
 #define PACKET_COUNT_COL 135
 #define TIMESTAMP_COL 150
 
-std::string local_ip = "127.0.0.1"; // TODO: get local IP address
+// std::string local_ip = "127.0.0.1"; // TODO: get local IP address
 
 std::atomic<bool> stop_flag(false);
 
@@ -29,6 +29,50 @@ std::atomic<bool> stop_flag(false);
 std::unordered_map<std::string, sPacket> packet_table;
 
 std::vector<sPacket> top_connections;
+
+// Function to get all local IP addresses
+std::vector<std::string> get_local_ips(/*std::string &interface_name*/) {
+    std::vector<std::string> local_ips;
+    struct ifaddrs *ifaddr, *ifa;
+    char ip[INET6_ADDRSTRLEN]; // enough for both IPv4 and IPv6 addresses
+
+    // Get all network interfaces
+    if (getifaddrs(&ifaddr) == -1) {
+        perror("getifaddrs");
+        return local_ips;
+    }
+
+    // Loop through the interfaces and collect IP addresses
+    for (ifa = ifaddr; ifa != nullptr; ifa = ifa->ifa_next) {
+        if (ifa->ifa_addr == nullptr) {
+            continue;
+        }
+
+        // if (interface_name != ifa->ifa_name)
+        // {
+        //     continue;
+        // }
+        
+
+        int family = ifa->ifa_addr->sa_family;
+
+        // Handle IPv4 addresses
+        if (family == AF_INET) {
+            struct sockaddr_in *sa = (struct sockaddr_in *)ifa->ifa_addr;
+            inet_ntop(AF_INET, &(sa->sin_addr), ip, INET_ADDRSTRLEN);
+            local_ips.push_back(std::string(ip));
+        }
+        // Handle IPv6 addresses
+        else if (family == AF_INET6) {
+            struct sockaddr_in6 *sa = (struct sockaddr_in6 *)ifa->ifa_addr;
+            inet_ntop(AF_INET6, &(sa->sin6_addr), ip, INET6_ADDRSTRLEN);
+            local_ips.push_back(std::string(ip));
+        }
+    }
+
+    freeifaddrs(ifaddr);
+    return local_ips;
+}
 
 // function to add a packet to the hash map
 void add_packet(std::string key, sPacket packet)
@@ -196,6 +240,13 @@ void search_most_traffic()
 // function that will create a table of top 10 connections with most traffic
 void create_most_traffic_array(std::vector<sPacket> &top_connections, sPacket packet)
 {
+    // if the packet doesnt have any traffic, dont add it to the table (no rx or tx) // this will prevent packets that are not communicating with the local machine to be displayed
+    // TODO: in case we want to save the packets that are not communicating with the local machine to the structure, but not the table, use this instead of the return in packet_handler
+    // if (packet.rx == 0 && packet.tx == 0)
+    // {
+    //     return;
+    // }
+    
     // if the table is empty, add the first packet
     if (top_connections.empty())
     {
@@ -228,7 +279,7 @@ void sort_most_traffic(std::vector<sPacket> &top_connections, char sort_by)
 {
     if (sort_by == 'b')
     {
-        std::sort(top_connections.begin(), top_connections.end(), [](sPacket a, sPacket b) { return a.length > b.length; }); // TODO: sort not based on length but Rx+Tx
+        std::sort(top_connections.begin(), top_connections.end(), [](sPacket a, sPacket b) { return ((a.rx+a.tx) > (b.rx+b.tx)); }); // TODO: sort not based on length but Rx+Tx
     }
     else if (sort_by == 'p')
     {
@@ -242,20 +293,33 @@ void sort_most_traffic(std::vector<sPacket> &top_connections, char sort_by)
 }
 
 // function that will differentiate between incoming and outgoing traffic
-void rx_tx(sPacket &packet)
+void rx_tx(sPacket &packet, const std::vector<std::string> &local_ips)
 {
-    if (packet.dst_ip == local_ip)
+    if (std::find(local_ips.begin(), local_ips.end(), packet.src_ip) != local_ips.end())
     {
         packet.rx = packet.length;
     }
-    else if (packet.src_ip == local_ip)
+    else if (std::find(local_ips.begin(), local_ips.end(), packet.dst_ip) != local_ips.end())
     {
+        // when the packet is outgoing we gotta swap the source and destination IPs so it is displayed correctly, combined into one line
+        std::swap(packet.src_ip, packet.dst_ip);
         packet.tx = packet.length;
     }
-    else
+    else // if the packet is neither incoming nor outgoing, only happens if the local IP is not found
     {
-        std::cerr << "Packet is neither incoming nor outgoing." << std::endl;
-        exit(EXIT_FAILURE);
+        // mvprintw(10, 0, "Packet is neither incoming nor outgoing.");
+        // // std::cerr << "Packet is neither incoming nor outgoing." << std::endl;
+        // // print all local IPs
+        // for (auto &ip : local_ips)
+        // {
+        //     mvprintw(11, 0, "%s", ip.c_str());
+        //     // std::cerr << ip << std::endl;
+        // }
+        // mvprintw(12, 0, "Source IP: %s Destination IP: %s", packet.src_ip.c_str(), packet.dst_ip.c_str());
+        // std::cerr << "Source IP: " << packet.src_ip << " Destination IP: " << packet.dst_ip << std::endl;
+        // std::cerr << "Packet is neither incoming nor outgoing." << std::endl;
+        // exit(EXIT_FAILURE); 
+        return;
     }   
 }
 
@@ -265,7 +329,7 @@ pcap_t *open_interface(std::string &interface)
 {
     char errbuf[PCAP_ERRBUF_SIZE];
 
-    pcap_t *handle = pcap_open_live(interface.c_str(), BUFSIZ, 1, 1000, errbuf);
+    pcap_t *handle = pcap_open_live(interface.c_str(), BUFSIZ, 0, 1000, errbuf); // promiscuous mode is disabled, timeout is 1000ms
     if (handle == NULL)
     {
         std::cerr << "Couldn't open interface " << interface << ": " << errbuf << std::endl;
@@ -300,7 +364,7 @@ void close_interface(pcap_t *handle)
 }
 
 // function that will handle each packet captured and print/save results into a structure
-void packet_handler(struct pcap_pkthdr* pkthdr, const u_char *packet) {
+void packet_handler(struct pcap_pkthdr* pkthdr, const u_char *packet, const std::vector<std::string> &local_ips) {
     std::cout << "Got a packet" << std::endl;
 
     sPacket *newPacket;
@@ -379,16 +443,29 @@ void packet_handler(struct pcap_pkthdr* pkthdr, const u_char *packet) {
     }
 
         // // TODO: rx and tx (will depend based on if its incoming or outgoing packet)
-        newPacket->rx = 0;
-        newPacket->tx = 0;
+        // newPacket->rx = 0;
+        // newPacket->tx = 0;
+
+        // std::cout << "still alive" << std::endl;
 
         // differentiate between incoming and outgoing traffic // TODO: after figuring out how to find local_ip properly, uncomment this
-        // rx_tx(*newPacket);
+        rx_tx(*newPacket, local_ips);
+
+        // std::cout << "still alive 2" << std::endl;
+
 
         // Timestamp
         newPacket->timestamp = ctime((const time_t*)&pkthdr->ts.tv_sec);
 
+
         // add packet to the hash map // TODO: include ports for more specific key for the exact communication, but ports are now integers and also only optional, so they arent included all the time, but only for protocols like TCP/UDP, ...
+        // only add the packets if they communicate with the local machine, that means that rx_tx function has set rx or tx to a value
+        if (newPacket->rx == 0 && newPacket->tx == 0)
+        {
+            // TODO: testing purposes, if the packet is not communicating with the local machine, show the packet, but dont add it to the table
+            std::cout << "Source IP: " << newPacket->src_ip << " Source Port: " << newPacket->src_port << " Destination IP: " << newPacket->dst_ip << " Destination Port: " << newPacket->dst_port << " Protocol: " << newPacket->protocol << " Length: " << newPacket->length << " Bytes " << "Count of packets: " << newPacket->packet_count << " Timestamp: " << newPacket->timestamp << std::endl;
+            return;
+        }
         if (newPacket->src_port == -1 && newPacket->dst_port == -1)
         {
             add_packet(newPacket->src_ip /*+ newPacket->src_port*/ + newPacket->dst_ip /*+ newPacket->dst_port*/ + newPacket->protocol, *newPacket);
@@ -411,9 +488,13 @@ void packet_handler(struct pcap_pkthdr* pkthdr, const u_char *packet) {
 }
 
 // function that will capture packets
-void packet_capture(pcap_t *handle)
+void packet_capture(pcap_t *handle, std::unique_ptr<Config> &config)
 {
     std::cout << "Packet Capture Starts..." << std::endl;
+
+    std::string interface = config->interface;
+
+    std::vector<std::string> local_ips = get_local_ips(/*interface*/);
 
     // opens the interface that is displayed in the terminal
     print_packets();
@@ -439,7 +520,7 @@ void packet_capture(pcap_t *handle)
             // shutdown();
         }
 
-        packet_handler(&header, packet);
+        packet_handler(&header, packet, local_ips);
 
 
     }

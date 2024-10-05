@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
     std::thread timer_thread(timer, config->time, config->sort);
 
     // capture packets
-    packet_capture(handle);
+    packet_capture(handle, config);
 
     // after receiving SIGINT, stop the program
     std::cout << "Program stopped by user." << std::endl;
