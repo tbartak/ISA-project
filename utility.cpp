@@ -128,9 +128,11 @@ void clear_packets()
 // }
 
 // function to print all packets in the hash map using ncurses
-void print_packets()
+void print_packets(int time)
 {
     clear(); // clear the screen
+
+    double interval = (double)time; // interval in seconds
 
     int row = 0;
 
@@ -139,17 +141,16 @@ void print_packets()
     mvprintw(row, DST_IP_COL, "Dst IP:port");
     mvprintw(row, PROTOCOL_COL, "Proto");
     mvprintw(row, LENGTH_COL, "Length");
-    mvprintw(row, RX_COL, "RX Bytes");
-    mvprintw(row, TX_COL, "TX Bytes");
+    mvprintw(row, RX_COL, "RX");
+    mvprintw(row, TX_COL, "TX");
     mvprintw(row, PACKET_COUNT_COL, "Packet Count");
-    mvprintw(row, TIMESTAMP_COL, "Timestamp");
 
     row++;
 
 
     for (auto &packet : top_connections)
     {        
-        // print only packets that have some transmission in the last second
+        // print only packets that have some transmission in the last second // TODO: not needed anymore, since the packets that are not communicating with the local machine are not added to the table
         if (packet.length != 0)
         {      
             if (packet.src_port == -1 || packet.dst_port == -1)
@@ -157,11 +158,10 @@ void print_packets()
                 mvprintw(row, SRC_IP_COL, "%s", packet.src_ip.c_str());
                 mvprintw(row, DST_IP_COL, "%s", packet.dst_ip.c_str());
                 mvprintw(row, PROTOCOL_COL, "%s", packet.protocol.c_str());
-                mvprintw(row, LENGTH_COL, "%d", packet.length);
-                mvprintw(row, RX_COL, "%d", packet.rx);
-                mvprintw(row, TX_COL, "%d", packet.tx);
-                mvprintw(row, PACKET_COUNT_COL, "%d", packet.packet_count);
-                mvprintw(row, TIMESTAMP_COL, "%s", packet.timestamp.c_str());
+                mvprintw(row, LENGTH_COL, "%sB/s", convert_data_amount(packet.length / interval).c_str());
+                mvprintw(row, RX_COL, "%sB/s", convert_data_amount(packet.rx / interval).c_str());
+                mvprintw(row, TX_COL, "%sB/s", convert_data_amount(packet.tx / interval).c_str());
+                mvprintw(row, PACKET_COUNT_COL, "%sp/s", convert_data_amount(packet.packet_count / interval).c_str());
 
                 
                 // mvprintw(row, 0, "%s %s %s %d %d %d %d %s", packet.second.src_ip.c_str(), packet.second.dst_ip.c_str(), packet.second.protocol.c_str(), packet.second.length, packet.second.rx, packet.second.tx, packet.second.packet_count, packet.second.timestamp.c_str());
@@ -172,11 +172,10 @@ void print_packets()
                 mvprintw(row, SRC_IP_COL, "%s:%d", packet.src_ip.c_str(), packet.src_port);
                 mvprintw(row, DST_IP_COL, "%s:%d", packet.dst_ip.c_str(), packet.dst_port);
                 mvprintw(row, PROTOCOL_COL, "%s", packet.protocol.c_str());
-                mvprintw(row, LENGTH_COL, "%d", packet.length);
-                mvprintw(row, RX_COL, "%d", packet.rx);
-                mvprintw(row, TX_COL, "%d", packet.tx);
-                mvprintw(row, PACKET_COUNT_COL, "%d", packet.packet_count);
-                mvprintw(row, TIMESTAMP_COL, "%s", packet.timestamp.c_str());
+                mvprintw(row, LENGTH_COL, "%sB/s", convert_data_amount(packet.length / interval).c_str());
+                mvprintw(row, RX_COL, "%sB/s", convert_data_amount(packet.rx / interval).c_str());
+                mvprintw(row, TX_COL, "%sB/s", convert_data_amount(packet.tx / interval).c_str());
+                mvprintw(row, PACKET_COUNT_COL, "%sp/s", convert_data_amount(packet.packet_count / interval).c_str());
 
                 // mvprintw(row, 0, "%s %d %s %d %s %d %d %d %d %s", packet.second.src_ip.c_str(), packet.second.src_port, packet.second.dst_ip.c_str(), packet.second.dst_port, packet.second.protocol.c_str(), packet.second.length, packet.second.rx, packet.second.tx, packet.second.packet_count, packet.second.timestamp.c_str());
             }
@@ -204,7 +203,7 @@ void timer(int time, char sort)
         // std::cout << "-------------------REFRESH HAPPENS NOW!------------------------" << std::endl;
         search_most_traffic();
         sort_most_traffic(top_connections, sort);
-        print_packets();
+        print_packets(time); // to calculate the bandwidth, we pass the time set by the user to the function
         clear_data(); // TODO: or clear_packets()? to clear all data of the packets? could be better for memory management
         // std::cout << "---------------------------------------------------------------" << std::endl;
     }
@@ -323,6 +322,41 @@ void rx_tx(sPacket &packet, const std::vector<std::string> &local_ips)
     }   
 }
 
+// function that converts the data amount to more readable format
+std::string convert_data_amount(double data_amount)
+{
+    // constants for data amounts
+    double K = 1024;
+    double M = 1024 * K;
+    double G = 1024 * M;
+
+    std::ostringstream data; 
+    double result; 
+    data << std::fixed << std::setprecision(1); // set precision to 1 decimal place
+
+    if (data_amount < K)
+    {
+        result = data_amount;
+        data << result << " ";
+    }
+    else if (data_amount >= K && data_amount < M)
+    {
+        result = data_amount / K;
+        data << result << " K";
+    }
+    else if (data_amount >= M && data_amount < G)
+    {
+        result = data_amount / M;
+        data << result << " M";
+    }
+    else
+    {
+        result = data_amount / G;
+        data << result << " G";
+    }
+    return data.str();
+}
+
 
 // function that will open the selected interface and exit with an error if the interface is not available
 pcap_t *open_interface(std::string &interface)
@@ -382,30 +416,36 @@ void packet_handler(struct pcap_pkthdr* pkthdr, const u_char *packet, const std:
     // Check if the packet is an IPv4 packet
     if (ntohs(eth_header->ether_type) == ETHERTYPE_IP) {
         // Extract the IP header
-        const struct ip *ip_header = (struct ip*)(packet + sizeof(struct ether_header)); // IP header is after ethernet header, which is 14 bytes
+        const struct ip *ip_header = (struct ip*)(packet + sizeof(struct ether_header)); // IP header is after ethernet header
 
         // Get source and destination IP addresses
         newPacket->src_ip = inet_ntoa(ip_header->ip_src); // TODO: only works for IPv4, need support for IPv6
         newPacket->dst_ip = inet_ntoa(ip_header->ip_dst); // TODO: only works for IPv4, need support for IPv6
 
         // Check protocol
+        struct protoent *packet_protocol = getprotobynumber(ip_header->ip_p);
+        if (packet_protocol)
+        {
+            newPacket->protocol = packet_protocol->p_name;
+        }
+        else
+        {
+            newPacket->protocol = "Unknown";
+        }
+        
         if (ip_header->ip_p == IPPROTO_TCP) {
             // Extract the TCP header
             const struct tcphdr* tcp_header = (struct tcphdr*)(packet + sizeof(struct ether_header) + sizeof(struct ip));
-            newPacket->protocol = "TCP";
+            // newPacket->protocol = "TCP";
             newPacket->src_port = ntohs(tcp_header->th_sport);
             newPacket->dst_port = ntohs(tcp_header->th_dport);
         } else if (ip_header->ip_p == IPPROTO_UDP) {
             const struct udphdr* udp_header = (struct udphdr*)(packet + sizeof(struct ether_header) + sizeof(struct ip));
-            newPacket->protocol = "UDP";
+            // newPacket->protocol = "UDP";
             newPacket->src_port = ntohs(udp_header->uh_sport);
             newPacket->dst_port = ntohs(udp_header->uh_dport);
         }
-        // TODO: rest of the supported protocols
-        else {
-            // TODO: for testing purposes, if its unknown protocol, we wont be able to output anything, but for other currently unsupported protocols like ICMP, we will output the correct protocol name
-            newPacket->protocol = "---";
-        }
+        // TODO: rest of the protocols with specified ports in headers
     }
     else if (ntohs(eth_header->ether_type) == ETHERTYPE_IPV6) { // TODO: needs to be tested, seems to be working though
         // Extract the IPv6 header
@@ -421,25 +461,32 @@ void packet_handler(struct pcap_pkthdr* pkthdr, const u_char *packet, const std:
         newPacket->dst_ip = dst_ip;
 
         // Check protocol
+        struct protoent *packet_protocol = getprotobynumber(ip6_header->ip6_nxt);
+        if (packet_protocol)
+        {
+            newPacket->protocol = packet_protocol->p_name;
+        }
+        else
+        {
+            newPacket->protocol = "Unknown";
+        }
+
+        // Check protocol
         if (ip6_header->ip6_nxt == IPPROTO_TCP) {
             // Extract the TCP header
             // const struct tcphdr* tcp_header = (struct tcphdr*)(packet + sizeof(struct ether_header) + sizeof(struct ip));
             const struct tcphdr* tcp_header = (struct tcphdr*)(packet + sizeof(struct ether_header) + sizeof(struct ip6_hdr));
-            newPacket->protocol = "TCP";
+            // newPacket->protocol = "TCP";
             newPacket->src_port = ntohs(tcp_header->th_sport);
             newPacket->dst_port = ntohs(tcp_header->th_dport);
         } else if (ip6_header->ip6_nxt == IPPROTO_UDP) {
             // const struct udphdr* udp_header = (struct udphdr*)(packet + sizeof(struct ether_header) + sizeof(struct ip));
             const struct udphdr* udp_header = (struct udphdr*)(packet + sizeof(struct ether_header) + sizeof(struct ip6_hdr));
-            newPacket->protocol = "UDP";
+            // newPacket->protocol = "UDP";
             newPacket->src_port = ntohs(udp_header->uh_sport);
             newPacket->dst_port = ntohs(udp_header->uh_dport);
         }
-        // TODO: rest of the supported protocols
-        else {
-            // TODO: for testing purposes, if its unknown protocol, we wont be able to output anything, but for other currently unsupported protocols like ICMP, we will output the correct protocol name
-            newPacket->protocol = "---";
-        }
+        // TODO: rest of protocols with specified ports in headers
     }
 
         // // TODO: rx and tx (will depend based on if its incoming or outgoing packet)
@@ -455,7 +502,7 @@ void packet_handler(struct pcap_pkthdr* pkthdr, const u_char *packet, const std:
 
 
         // Timestamp
-        newPacket->timestamp = ctime((const time_t*)&pkthdr->ts.tv_sec);
+        // newPacket->timestamp = ctime((const time_t*)&pkthdr->ts.tv_sec);
 
 
         // add packet to the hash map // TODO: include ports for more specific key for the exact communication, but ports are now integers and also only optional, so they arent included all the time, but only for protocols like TCP/UDP, ...
@@ -497,7 +544,7 @@ void packet_capture(pcap_t *handle, std::unique_ptr<Config> &config)
     std::vector<std::string> local_ips = get_local_ips(/*interface*/);
 
     // opens the interface that is displayed in the terminal
-    print_packets();
+    print_packets(config->time);
 
     struct pcap_pkthdr header;
     const u_char *packet;

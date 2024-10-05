@@ -14,9 +14,10 @@ int main(int argc, char *argv[])
     // check selected interface
     pcap_t *handle = open_interface(config->interface);
 
+    // check for Ctrl+C
     signal(SIGINT, signal_handler);
 
-    // TODO: need to handle timer that will refresh the screen every second (or the specified time)
+    // start another thread that will control refresh of the screen
     std::thread timer_thread(timer, config->time, config->sort);
 
     // capture packets
@@ -37,8 +38,6 @@ int main(int argc, char *argv[])
 
     // TODO: Implement the rest of the program
     // close gracefully (Ctrl+C)
-
-    // sort method (bytes or packets)
 
     // check for memory leaks
 

@@ -16,6 +16,10 @@
 #include <vector>
 #include <netinet/ip6.h> // struct ip6_hdr
 #include <ifaddrs.h> // getifaddrs
+#include <netdb.h> // getprotobynumber
+#include <cmath> // std::round
+#include <sstream> // std::stringstream
+#include <iomanip> // std::setprecision
 
 
 // structure for individual packets
@@ -38,7 +42,7 @@ std::vector<std::string> get_local_ips(/*std::string &interface_name*/);
 void add_packet(std::string key, sPacket packet);
 void clear_data();
 void clear_packets();
-void print_packets();
+void print_packets(int time);
 void print_packet(std::string key);
 void timer(int time, char sort);
 void signal_handler(int signal);
@@ -46,6 +50,8 @@ void shutdown();
 void search_most_traffic();
 void create_most_traffic_array(std::vector<sPacket> &top_connections, sPacket packet);
 void sort_most_traffic(std::vector<sPacket> &top_connections, char sort);
+void rx_tx(sPacket &packet, const std::vector<std::string> &local_ips);
+std::string convert_data_amount(double data_amount);
 pcap_t *open_interface(std::string &interface);
 void close_interface(pcap_t *handle);
 void packet_capture(pcap_t *handle, std::unique_ptr<Config> &config);
