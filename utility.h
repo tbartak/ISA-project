@@ -55,6 +55,6 @@ std::string convert_data_amount(double data_amount);
 pcap_t *open_interface(std::string &interface);
 void close_interface(pcap_t *handle);
 void packet_capture(pcap_t *handle, std::unique_ptr<Config> &config);
-void packet_handler(struct pcap_pkthdr* pkthdr, const u_char *packet, const std::vector<std::string> &local_ips);
+void packet_handler(u_char *user_data, const struct pcap_pkthdr* pkthdr, const u_char *packet);
 
 #endif // UTILITY_H

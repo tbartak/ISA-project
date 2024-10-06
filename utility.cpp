@@ -25,6 +25,8 @@
 
 std::atomic<bool> stop_flag(false);
 
+pcap_t *global_handle;
+
 // all packets will be stored using a hash map
 std::unordered_map<std::string, sPacket> packet_table;
 
@@ -183,6 +185,7 @@ void print_packets(int time)
             row++;
         }
     }
+    mvprintw(20, 0, "Press Ctrl+C to stop the program.");
     refresh();
 }
 
@@ -199,7 +202,17 @@ void timer(int time, char sort)
     {
         // TODO: finish timer function
         // wait for the specified time
-        std::this_thread::sleep_for(std::chrono::seconds(time));
+        // could optimize, lets say that it will always sleep for 1 second, but if the time was set to 10 seconds, it will repeat the sleep 9 more times
+        for (int i = 0; i < time; i++)
+        {
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+            if (stop_flag.load()) // if the stop flag is set, stop the timer -> close the program
+            {
+                return;
+            }
+        }
+        // std::this_thread::sleep_for(std::chrono::seconds(time)); // when closing using Ctrl+C, this will still wait for the period to finish, even though it wont receive any more data from the packets
+        
         // clear screen before printing new data
         // std::cout << "-------------------REFRESH HAPPENS NOW!------------------------" << std::endl;
         search_most_traffic();
@@ -216,7 +229,9 @@ void signal_handler(int signal)
     if (signal == SIGINT)
     {
         // std::cout << "\nSIGINT received, stopping capture and cleaning up..." << std::endl;
-        stop_flag = true;
+        // stop_flag = true;
+        stop_flag.store(true);
+        pcap_breakloop(global_handle);
     }
 }
 
@@ -399,8 +414,11 @@ void close_interface(pcap_t *handle)
 }
 
 // function that will handle each packet captured and print/save results into a structure
-void packet_handler(struct pcap_pkthdr* pkthdr, const u_char *packet, const std::vector<std::string> &local_ips) {
+void packet_handler(u_char *user_data, const struct pcap_pkthdr* pkthdr, const u_char *packet) {
     std::cout << "Got a packet" << std::endl;
+
+    // convert user_data to local_ips
+    std::vector<std::string> *local_ips = reinterpret_cast<std::vector<std::string>*>(user_data);
 
     // // create a new packet
     std::unique_ptr<sPacket> newPacket = std::make_unique<sPacket>();
@@ -495,7 +513,7 @@ void packet_handler(struct pcap_pkthdr* pkthdr, const u_char *packet, const std:
         // std::cout << "still alive" << std::endl;
 
         // differentiate between incoming and outgoing traffic // TODO: after figuring out how to find local_ip properly, uncomment this
-        rx_tx(*newPacket, local_ips);
+        rx_tx(*newPacket, *local_ips);
 
         // std::cout << "still alive 2" << std::endl;
 
@@ -537,6 +555,8 @@ void packet_capture(pcap_t *handle, std::unique_ptr<Config> &config)
 {
     std::cout << "Packet Capture Starts..." << std::endl;
 
+    global_handle = handle;
+
     std::string interface = config->interface;
 
     std::vector<std::string> local_ips = get_local_ips(/*interface*/);
@@ -544,29 +564,32 @@ void packet_capture(pcap_t *handle, std::unique_ptr<Config> &config)
     // opens the interface that is displayed in the terminal
     print_packets(config->time);
 
-    struct pcap_pkthdr header;
-    const u_char *packet;
+    // struct pcap_pkthdr header;
+    // const u_char *packet;
 
-    // will capture packets until the program is terminated
-    while (!stop_flag.load())
-    {
-        // blocking/non-blocking?
-        packet = pcap_next(handle, &header);
-        // packet will be NULL if no packet is captured
-        if (packet == NULL)
-        {
-            continue;
-        }
-
-        // signal to shutdown the program received // TODO: but it is sometimes delayed, so it will still capture some packets after the signal is received
-        if (stop_flag.load())
-        {
-            return;
-            // shutdown();
-        }
-
-        packet_handler(&header, packet, local_ips);
-
-
+    // Pass the local_ips vector to the packet_handler as user data
+    if (pcap_loop(handle, 0, packet_handler, (u_char *)&local_ips) == -1) {
+        std::cerr << "Error capturing packets: " << pcap_geterr(handle) << std::endl;
+        return;
     }
+
+    // // will capture packets until the program is terminated
+    // while (!stop_flag.load())
+    // {
+    //     // blocking/non-blocking?
+    //     packet = pcap_next(handle, &header);
+    //     // packet will be NULL if no packet is captured
+    //     if (packet == NULL)
+    //     {
+    //         continue;
+    //     }
+
+    //     // signal to shutdown the program received // TODO: but it is sometimes delayed, so it will still capture some packets after the signal is received
+    //     if (stop_flag.load())
+    //     {
+    //         return;
+    //         // shutdown();
+    //     }
+    //     packet_handler(&header, packet, local_ips);
+    // }
 }
