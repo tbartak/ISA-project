@@ -5,26 +5,42 @@
 #include <memory> // std::unique_ptr
 #include "config.h"
 
-// function that will parse arguments entered using the command line
-std::unique_ptr<Config> parse_args(int argc, char *argv[])
+Config::Config() : interface(""), sort('b'), time(1) {}
+
+std::string Config::getInterface() const
 {
-    std::unique_ptr<Config> config = std::make_unique<Config>();
+    return interface;
+}
+
+char Config::getSort() const
+{
+    return sort;
+}
+
+int Config::getTime() const
+{
+    return time;
+}
+
+// function that will parse arguments entered using the command line
+void Config::parse_args(int argc, char *argv[])
+{
     int opt;
     while ((opt = getopt(argc, argv, "i:s:t:")) != -1) // -i must be defined, -s and -t are optional, if not defined, default values are used (s = 'b', t = 1)
     {
         switch (opt)
         {
         case 'i':
-            config->interface = optarg;
+            interface = optarg;
             break;
         case 's':
             if (optarg[0] == 'b')
             {
-                config->sort = 'b';
+                sort = 'b';
             }
             else if (optarg[0] == 'p')
             {
-                config->sort = 'p';
+                sort = 'p';
             }
             else
             {
@@ -33,8 +49,8 @@ std::unique_ptr<Config> parse_args(int argc, char *argv[])
             }
             break;
         case 't':
-            config->time = std::stoi(optarg); // save as integer
-            if (config->time <= 0) // invalid time
+            time = std::stoi(optarg); // save as integer
+            if (time <= 0) // invalid time
             {
                 std::cerr << "Invalid argument used after -t. Valid options are only numbers bigger than 0." << std::endl;
                 exit(EXIT_FAILURE);
@@ -47,11 +63,9 @@ std::unique_ptr<Config> parse_args(int argc, char *argv[])
     }
 
     // Interface must be specified
-    if (config->interface.empty())
+    if (interface.empty())
     {
         std::cerr << "Network interface (-i) must be specified." << std::endl;
         exit(EXIT_FAILURE);
     }
-
-    return config;
 }

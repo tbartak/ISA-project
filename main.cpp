@@ -1,24 +1,25 @@
 #include <iostream>
-#include "argument_parser.h"
+#include "config.h"
 #include "utility.h"
+
 
 int main(int argc, char *argv[])
 {
-    
     initscr();
     cbreak(); // disable line buffering
     noecho(); // disable echoing of characters
 
-    std::unique_ptr<Config> config = parse_args(argc, argv);
+    Config config;
+    config.parse_args(argc, argv);
 
     // check selected interface
-    pcap_t *handle = open_interface(config->interface);
+    pcap_t *handle = open_interface(config.getInterface());
 
     // check for Ctrl+C
     signal(SIGINT, signal_handler);
 
     // start another thread that will control refresh of the screen
-    std::thread timer_thread(timer, config->time, config->sort);
+    std::thread timer_thread(timer, config.getTime(), config.getSort());
 
     // capture packets
     packet_capture(handle, config);

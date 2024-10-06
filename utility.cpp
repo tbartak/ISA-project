@@ -375,7 +375,7 @@ std::string convert_data_amount(double data_amount)
 
 
 // function that will open the selected interface and exit with an error if the interface is not available
-pcap_t *open_interface(std::string &interface)
+pcap_t *open_interface(const std::string &interface)
 {
     char errbuf[PCAP_ERRBUF_SIZE];
 
@@ -551,18 +551,18 @@ void packet_handler(u_char *user_data, const struct pcap_pkthdr* pkthdr, const u
 }
 
 // function that will capture packets
-void packet_capture(pcap_t *handle, std::unique_ptr<Config> &config)
+void packet_capture(pcap_t *handle, Config &config)
 {
     std::cout << "Packet Capture Starts..." << std::endl;
 
     global_handle = handle;
 
-    std::string interface = config->interface;
+    std::string interface = config.getInterface();
 
     std::vector<std::string> local_ips = get_local_ips(/*interface*/);
 
     // opens the interface that is displayed in the terminal
-    print_packets(config->time);
+    print_packets(config.getTime());
 
     // struct pcap_pkthdr header;
     // const u_char *packet;

@@ -1,6 +1,6 @@
 COMPILER = g++
 FLAGS = -std=c++14 -Wall -Wextra -Werror -pedantic
-SRC = main.cpp argument_parser.cpp utility.cpp
+SRC = main.cpp config.cpp utility.cpp
 EXEC = isa-top
 
 all:

@@ -52,9 +52,9 @@ void create_most_traffic_array(std::vector<sPacket> &top_connections, sPacket pa
 void sort_most_traffic(std::vector<sPacket> &top_connections, char sort);
 void rx_tx(sPacket &packet, const std::vector<std::string> &local_ips);
 std::string convert_data_amount(double data_amount);
-pcap_t *open_interface(std::string &interface);
+pcap_t *open_interface(const std::string &interface);
 void close_interface(pcap_t *handle);
-void packet_capture(pcap_t *handle, std::unique_ptr<Config> &config);
+void packet_capture(pcap_t *handle, Config &config);
 void packet_handler(u_char *user_data, const struct pcap_pkthdr* pkthdr, const u_char *packet);
 
 #endif // UTILITY_H
