@@ -20,40 +20,41 @@
 #include <cmath> // std::round
 #include <sstream> // std::stringstream
 #include <iomanip> // std::setprecision
+#include "packet_info.h"
 
 
 // structure for individual packets
-struct sPacket {
-    std::string src_ip;
-    int src_port = -1;
-    std::string dst_ip;
-    int dst_port = -1;
-    std::string protocol;
-    int length = 0;
-    int packet_count = 0;
-    int rx = 0;
-    int tx = 0;
-    std::string timestamp;
-};
+// struct sPacket {
+//     std::string src_ip;
+//     int src_port = -1;
+//     std::string dst_ip;
+//     int dst_port = -1;
+//     std::string protocol;
+//     int length = 0;
+//     int packet_count = 0;
+//     int rx = 0;
+//     int tx = 0;
+//     std::string timestamp;
+// };
 
 extern std::atomic<bool> stop_flag;  // Declare the stop flag as external
 
 std::vector<std::string> get_local_ips(/*std::string &interface_name*/);
-void add_packet(std::string key, sPacket packet);
+// void add_packet(std::string key, Packet packet);
 void clear_data();
 void clear_packets();
 void print_packets(int time);
 void print_packet(std::string key);
 void timer(int time, char sort);
 void signal_handler(int signal);
-void shutdown();
+void shutdown(std::thread &timer_thread);
 void search_most_traffic();
-void create_most_traffic_array(std::vector<sPacket> &top_connections, sPacket packet);
-void sort_most_traffic(std::vector<sPacket> &top_connections, char sort);
-void rx_tx(sPacket &packet, const std::vector<std::string> &local_ips);
+void create_most_traffic_array(std::vector<Packet> &top_connections, Packet packet);
+void sort_most_traffic(std::vector<Packet> &top_connections, char sort);
+// void rx_tx(Packet &packet, const std::vector<std::string> &local_ips);
 std::string convert_data_amount(double data_amount);
-pcap_t *open_interface(const std::string &interface);
-void close_interface(pcap_t *handle);
+// pcap_t *open_interface(const std::string &interface);
+// void close_interface(pcap_t *handle);
 void packet_capture(pcap_t *handle, Config &config);
 void packet_handler(u_char *user_data, const struct pcap_pkthdr* pkthdr, const u_char *packet);
 

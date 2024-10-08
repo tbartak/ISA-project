@@ -1,6 +1,6 @@
 COMPILER = g++
 FLAGS = -std=c++14 -Wall -Wextra -Werror -pedantic
-SRC = main.cpp config.cpp utility.cpp
+SRC = main.cpp config.cpp utility.cpp packet_info.cpp network_interface.cpp packet_config.cpp
 EXEC = isa-top
 
 all:

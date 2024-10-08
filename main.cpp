@@ -1,6 +1,7 @@
 #include <iostream>
 #include "config.h"
 #include "utility.h"
+#include "network_interface.h"
 
 
 int main(int argc, char *argv[])
@@ -12,8 +13,15 @@ int main(int argc, char *argv[])
     Config config;
     config.parse_args(argc, argv);
 
+    NetworkInterface network_interface;
+
     // check selected interface
-    pcap_t *handle = open_interface(config.getInterface());
+    if (!network_interface.open_interface(config.getInterface()))
+    {
+        endwin();
+        return 1;
+    }
+
 
     // check for Ctrl+C
     signal(SIGINT, signal_handler);
@@ -22,12 +30,12 @@ int main(int argc, char *argv[])
     std::thread timer_thread(timer, config.getTime(), config.getSort());
 
     // capture packets
-    packet_capture(handle, config);
+    packet_capture(network_interface.getHandle(), config);
 
     // after receiving SIGINT, stop the program
     std::cout << "Program stopped by user." << std::endl;
     timer_thread.join();
-    close_interface(handle);
+    network_interface.close_interface();
     clear_packets();
     // shutdown();
 
