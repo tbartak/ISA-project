@@ -2,6 +2,11 @@
 #include "config.h"
 #include "utility.h"
 #include "network_interface.h"
+// #include "display.h"
+#include <functional>
+#include "packet_handling.h"
+#include "globals.h"
+#include "display.h"
 
 
 int main(int argc, char *argv[])
@@ -22,6 +27,8 @@ int main(int argc, char *argv[])
         return 1;
     }
 
+    global_handle = network_interface.getHandle();
+
 
     // check for Ctrl+C
     signal(SIGINT, signal_handler);
@@ -30,7 +37,8 @@ int main(int argc, char *argv[])
     std::thread timer_thread(timer, config.getTime(), config.getSort());
 
     // capture packets
-    packet_capture(network_interface.getHandle(), config);
+    PacketHandling packet_handling;
+    packet_handling.packet_capture(config);
 
     // after receiving SIGINT, stop the program
     std::cout << "Program stopped by user." << std::endl;
@@ -40,8 +48,6 @@ int main(int argc, char *argv[])
     // shutdown();
 
     endwin();
-    
-    
 
     std::cout << "Program finished. Resources cleaned." << std::endl;
 
