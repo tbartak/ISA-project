@@ -11,9 +11,7 @@
 
 int main(int argc, char *argv[])
 {
-    initscr();
-    cbreak(); // disable line buffering
-    noecho(); // disable echoing of characters
+    Display display;
 
     Config config;
     config.parse_args(argc, argv);
@@ -23,7 +21,6 @@ int main(int argc, char *argv[])
     // check selected interface
     if (!network_interface.open_interface(config.getInterface()))
     {
-        endwin();
         return 1;
     }
 
@@ -34,7 +31,7 @@ int main(int argc, char *argv[])
     signal(SIGINT, signal_handler);
 
     // start another thread that will control refresh of the screen
-    std::thread timer_thread(timer, config.getTime(), config.getSort());
+    std::thread timer_thread(display.timer, config.getTime(), config.getSort());
 
     // capture packets
     PacketHandling packet_handling;
@@ -46,8 +43,6 @@ int main(int argc, char *argv[])
     network_interface.close_interface();
     clear_packets();
     // shutdown();
-
-    endwin();
 
     std::cout << "Program finished. Resources cleaned." << std::endl;
 

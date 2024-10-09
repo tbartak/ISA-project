@@ -156,7 +156,8 @@ void PacketHandling::packet_capture(Config &config)
     std::vector<std::string> local_ips = get_local_ips(/*interface*/);
 
     // opens the interface that is displayed in the terminal
-    print_packets(config.getTime());
+    Display display;
+    display.print_packets(config.getTime());
     
     if (pcap_loop(global_handle, 0, PacketHandling::packet_handler, reinterpret_cast<u_char *>(&local_ips)) == -1) {
         std::cerr << "Error capturing packets: " << pcap_geterr(global_handle) << std::endl;

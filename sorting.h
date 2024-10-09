@@ -7,7 +7,7 @@
 #include <algorithm> // std::sort
 #include <iostream>
 #include "packet_config.h"
-#include "globals.h"
+// #include "globals.h"
 
 
 class Sorting

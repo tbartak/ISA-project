@@ -1,4 +1,5 @@
 #include "sorting.h"
+#include "globals.h"
 
 Sorting::Sorting() {}
 

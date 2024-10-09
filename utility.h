@@ -9,7 +9,7 @@
 #include <chrono> // std::chrono::system_clock
 #include <thread> // std::this_thread::sleep_for
 #include <signal.h> // signal handling
-#include "sorting.h"
+// #include "sorting.h"
 #include "config.h"
 #include <atomic>
 #include <ncurses.h>
@@ -29,9 +29,6 @@ extern std::atomic<bool> stop_flag;  // Declare the stop flag as external
 std::vector<std::string> get_local_ips(/*std::string &interface_name*/);
 void clear_data();
 void clear_packets();
-void print_packets(int time);
-void print_packet(std::string key);
-void timer(int time, char sort);
 void signal_handler(int signal);
 void shutdown(std::thread &timer_thread);
 std::string convert_data_amount(double data_amount);
