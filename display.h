@@ -1,3 +1,8 @@
+/**
+ * @file display.h
+ * @author Tomáš Barták (xbarta51)
+ */
+
 #ifndef DISPLAY_H
 #define DISPLAY_H
 
@@ -11,7 +16,7 @@
 // #include "sorting.h"
 #include "globals.h"
 
-// columns widths for ncurses
+// column widths for ncurses
 #define SRC_IP_COL 0
 #define DST_IP_COL 35
 #define PROTOCOL_COL 75
@@ -21,12 +26,17 @@
 #define PACKET_COUNT_COL 135
 #define TIMESTAMP_COL 150
 
+/**
+ * @brief class for displaying packets in the terminal
+ */
 class Display
 {
     public:
+        // Constructor and destructor
         Display();
         ~Display();
 
+        // Methods
         static void print_packets(int time);
         void print_packet(std::string key);
         static void timer(int time, char sort);

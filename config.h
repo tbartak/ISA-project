@@ -1,3 +1,8 @@
+/**
+ * @file config.h
+ * @author Tomáš Barták (xbarta51)
+ */
+
 #ifndef CONFIG_H
 #define CONFIG_H
 
@@ -6,17 +11,22 @@
 //#include <vector>
 //#include <getopt.h>
 
+/**
+ * @brief class for storing configuration values
+ */
 class Config
 {
     public:
+        // Constructor
         Config();
 
+        // Methods
+        void parse_args(int argc, char *argv[]);
+
+        // Getters
         std::string getInterface() const;
         char getSort() const;
         int getTime() const;
-
-        void parse_args(int argc, char *argv[]);
-
 
     private:
         std::string interface; // interface variable (-i)

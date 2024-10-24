@@ -1,3 +1,8 @@
+/**
+ * @file packet_handling.h
+ * @author Tomáš Barták (xbarta51)
+ */
+
 #ifndef PACKET_HANDLING_H
 #define PACKET_HANDLING_H
 
@@ -18,13 +23,18 @@
 #include <netinet/ip.h> // struct ip
 #include "display.h"
 
-
+/**
+ * @brief Class for handling packets.
+ * 
+ */
 class PacketHandling 
 {
     public:
+        // Constructor and destructor
         PacketHandling();
         ~PacketHandling();
 
+        // Methods
         void packet_capture(Config &config);
         static void packet_handler(u_char *user_data, const struct pcap_pkthdr* pkthdr, const u_char *packet);      
 };

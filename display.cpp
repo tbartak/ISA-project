@@ -1,6 +1,14 @@
+/**
+ * @file display.cpp
+ * @author Tomáš Barták (xbarta51)
+ */
+
 #include "display.h"
 
-
+/**
+ * @brief Constructor for a Display object, initializes ncurses mode.
+ * 
+ */
 Display::Display() 
 {
     initscr(); // start ncurses mode
@@ -8,6 +16,10 @@ Display::Display()
     noecho(); // disable echoing of characters
 }
 
+/**
+ * @brief Destructor for a Display object, ends ncurses mode.
+ * 
+ */
 Display::~Display()
 {
     endwin(); // end ncurses mode
@@ -32,6 +44,11 @@ Display::~Display()
 // }
 
 // function to print all packets in the hash map using ncurses
+/**
+ * @brief Function that prints the top connections from the hash map onto the screen using ncurses.
+ * 
+ * @param time time interval that is used to calculate the bandwidth.
+ */
 void Display::print_packets(int time)
 {
     clear(); // clear the screen
@@ -49,14 +66,15 @@ void Display::print_packets(int time)
     mvprintw(row, TX_COL, "TX");
     mvprintw(row, PACKET_COUNT_COL, "Packet Count");
 
-    row++;
+    row++; // to write below the header
 
-
+    // print all sorted packets from the hash map
     for (auto &packet : sorting.getTopConnections())
     {        
-        // print only packets that have some transmission in the last second // TODO: not needed anymore, since the packets that are not communicating with the local machine are not added to the table
+        // print only packets that have some transmission in the last time interval
         if (packet.getLength() != 0)
         {      
+            // if the port is not defined, print only the IP address
             if (packet.getSrcPort() == -1 || packet.getDstPort() == -1)
             {
                 mvprintw(row, SRC_IP_COL, "%s", packet.getSrcIp().c_str());
@@ -67,7 +85,7 @@ void Display::print_packets(int time)
                 mvprintw(row, TX_COL, "%sB/s", convert_data_amount(packet.getTx() / interval).c_str());
                 mvprintw(row, PACKET_COUNT_COL, "%sp/s", convert_data_amount(packet.getPacketCount() / interval).c_str());
             }
-            else
+            else // if the port is defined, print the IP address and the port
             {
                 // add port to the IP address of the source and destination
                 mvprintw(row, SRC_IP_COL, "%s:%d", packet.getSrcIp().c_str(), packet.getSrcPort());
@@ -78,29 +96,32 @@ void Display::print_packets(int time)
                 mvprintw(row, TX_COL, "%sB/s", convert_data_amount(packet.getTx() / interval).c_str());
                 mvprintw(row, PACKET_COUNT_COL, "%sp/s", convert_data_amount(packet.getPacketCount() / interval).c_str());
             }
-            row++;
+            row++; // move to the next row
         }
     }
-    mvprintw(20, 0, "Press Ctrl+C to stop the program.");
-    refresh();
+    mvprintw(20, 0, "Press Ctrl+C to stop the program."); // shortcut to end the program
+    refresh(); // refresh the screen to display the new data
 }
 
 // TODO: debug function for printing a single packet
 void Display::print_packet(std::string key) 
 {
-    const auto &packet_table = packet_config.getPacketTable(); // TODO: ended here
+    const auto &packet_table = packet_config.getPacketTable();
     auto packet = packet_table.at(key);
     std::cout << "Source IP: " << packet.getSrcIp() << " Source Port: " << packet.getSrcPort() << " Destination IP: " << packet.getDstIp() << " Destination Port: " << packet.getDstPort() << " Protocol: " << packet.getProtocol() << " Length: " << packet.getLength() << " Bytes " << " RX: " << packet.getRx() << " Bytes " << " TX: " << packet.getTx() << " Bytes " << "Count of packets: " << packet.getPacketCount() << std::endl;
 }
 
-// timer function that will be called every second (or other time specified by -t) to refresh the screen
+/**
+ * @brief Function that is called every second to refresh the screen with new data.
+ * 
+ * @param time time period that controls how often the screen is refreshed.
+ * @param sort sort type ('b' for bytes, 'p' for packets).
+ */
 void Display::timer(int time, char sort)
 {
     while (!stop_flag.load())
     {
-        // TODO: finish timer function
         // wait for the specified time
-        // could optimize, lets say that it will always sleep for 1 second, but if the time was set to 10 seconds, it will repeat the sleep 9 more times
         for (int i = 0; i < time; i++)
         {
             std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -109,10 +130,9 @@ void Display::timer(int time, char sort)
                 return;
             }
         }
-        // std::this_thread::sleep_for(std::chrono::seconds(time)); // when closing using Ctrl+C, this will still wait for the period to finish, even though it wont receive any more data from the packets
-        sorting.search_most_traffic();
-        sorting.sort_most_traffic(sort);
-        print_packets(time); // to calculate the bandwidth, we pass the time set by the user to the function
+        sorting.search_most_traffic(); // search for the most traffic in the last time interval
+        sorting.sort_most_traffic(sort); // sort it by bytes or packets afterwards
+        print_packets(time);
         clear_data(); // TODO: or clear_packets()? to clear all data of the packets? could be better for memory management
     }
 }

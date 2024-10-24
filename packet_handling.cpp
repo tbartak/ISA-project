@@ -1,15 +1,33 @@
+/**
+ * @file packet_handling.cpp
+ * @author Tomáš Barták (xbarta51)
+ */
+
 #include "packet_handling.h"
 #include <memory> // std::unique_ptr
 #include "utility.h"
 #include "globals.h"
 
-// constructor
+/**
+ * @brief Constructor for a new Packet Handling object.
+ * 
+ */
 PacketHandling::PacketHandling() {}
 
-// destructor
+/**
+ * @brief Destructor for the Packet Handling object.
+ * 
+ */
 PacketHandling::~PacketHandling() {}
 
 // function that will handle each packet captured and print/save results into a structure
+/**
+ * @brief Function that handles each packet captured.
+ * 
+ * @param user_data contains the local IP addresses needed for differentiating between incoming and outgoing traffic.
+ * @param pkthdr header of the packet.
+ * @param packet packet that is captured.
+ */
 void PacketHandling::packet_handler(u_char *user_data, const struct pcap_pkthdr* pkthdr, const u_char *packet) {
 
     if(!user_data) {
@@ -17,7 +35,7 @@ void PacketHandling::packet_handler(u_char *user_data, const struct pcap_pkthdr*
         return;
     }
 
-    // convert user_data to local_ips
+    // Convert user_data to local_ips
     std::vector<std::string> *local_ips = reinterpret_cast<std::vector<std::string>*>(user_data);
 
     if(!local_ips) {
@@ -25,17 +43,10 @@ void PacketHandling::packet_handler(u_char *user_data, const struct pcap_pkthdr*
         return;
     }
 
-    // std::cout << "Number of local IPs: " << local_ips->size() << std::endl;
-
-    // // debug: print local IPs
-    // for (const auto &ip : *local_ips) {
-    //     std::cout << "Local IP: " << ip << std::endl;
-    // }
-
-    // // create a new packet
+    // Create a new packet
     std::unique_ptr<Packet> newPacket = std::make_unique<Packet>();
 
-    // Packet length 
+    // Save packet length
     newPacket->setLength(pkthdr->len);
 
     // Extract the Ethernet header
@@ -46,7 +57,7 @@ void PacketHandling::packet_handler(u_char *user_data, const struct pcap_pkthdr*
         // Extract the IP header
         const struct ip *ip_header = (struct ip*)(packet + sizeof(struct ether_header)); // IP header is after ethernet header
 
-        // Get source and destination IP addresses
+        // Get and save source and destination IP addresses
         newPacket->setSrcIp(inet_ntoa(ip_header->ip_src));
         newPacket->setDstIp(inet_ntoa(ip_header->ip_dst));
 
@@ -62,11 +73,12 @@ void PacketHandling::packet_handler(u_char *user_data, const struct pcap_pkthdr*
         }
         
         if (ip_header->ip_p == IPPROTO_TCP) {
-            // Extract the TCP header
+            // Extract the TCP header and store the ports
             const struct tcphdr* tcp_header = (struct tcphdr*)(packet + sizeof(struct ether_header) + sizeof(struct ip));
             newPacket->setSrcPort(ntohs(tcp_header->th_sport));
             newPacket->setDstPort(ntohs(tcp_header->th_dport));
         } else if (ip_header->ip_p == IPPROTO_UDP) {
+            // Extract the UDP header and store the ports
             const struct udphdr* udp_header = (struct udphdr*)(packet + sizeof(struct ether_header) + sizeof(struct ip));
             newPacket->setSrcPort(ntohs(udp_header->uh_sport));
             newPacket->setDstPort(ntohs(udp_header->uh_dport));
@@ -75,8 +87,9 @@ void PacketHandling::packet_handler(u_char *user_data, const struct pcap_pkthdr*
     }
     else if (ntohs(eth_header->ether_type) == ETHERTYPE_IPV6) { // TODO: needs to be tested, seems to be working though
         // Extract the IPv6 header
-        const struct ip6_hdr *ip6_header = (struct ip6_hdr*)(packet + sizeof(struct ether_header)); // IPv6 header is after ethernet header, which is 14 bytes
+        const struct ip6_hdr *ip6_header = (struct ip6_hdr*)(packet + sizeof(struct ether_header)); // IPv6 header is after ethernet header
         
+        // Get and save source and destination IPv6 addresses
         char src_ip[INET6_ADDRSTRLEN];
         char dst_ip[INET6_ADDRSTRLEN];
         
@@ -99,13 +112,12 @@ void PacketHandling::packet_handler(u_char *user_data, const struct pcap_pkthdr*
 
         // Check protocol
         if (ip6_header->ip6_nxt == IPPROTO_TCP) {
-            // Extract the TCP header
-            // const struct tcphdr* tcp_header = (struct tcphdr*)(packet + sizeof(struct ether_header) + sizeof(struct ip));
+            // Extract the TCP header and store the ports
             const struct tcphdr* tcp_header = (struct tcphdr*)(packet + sizeof(struct ether_header) + sizeof(struct ip6_hdr));
             newPacket->setSrcPort(ntohs(tcp_header->th_sport));
             newPacket->setDstPort(ntohs(tcp_header->th_dport));
         } else if (ip6_header->ip6_nxt == IPPROTO_UDP) {
-            // const struct udphdr* udp_header = (struct udphdr*)(packet + sizeof(struct ether_header) + sizeof(struct ip));
+            // Extract the UDP header and store the ports
             const struct udphdr* udp_header = (struct udphdr*)(packet + sizeof(struct ether_header) + sizeof(struct ip6_hdr));
             newPacket->setSrcPort(ntohs(udp_header->uh_sport));
             newPacket->setDstPort(ntohs(udp_header->uh_dport));
@@ -113,13 +125,11 @@ void PacketHandling::packet_handler(u_char *user_data, const struct pcap_pkthdr*
         // TODO: rest of protocols with specified ports in headers
     }
 
-        // differentiate between incoming and outgoing traffic
-        // PacketConfig& packet_config = PacketConfig::getInstance();
-        packet_config.rx_tx(*newPacket, *local_ips); // TODO: potřeba vyřešit používání stejné instance packet_config jako v ostatních souborech
+        // Differentiate between incoming and outgoing traffic and store the Rx or Tx value
+        packet_config.rx_tx(*newPacket, *local_ips);
 
 
-        // add packet to the hash map // TODO: include ports for more specific key for the exact communication, but ports are now integers and also only optional, so they arent included all the time, but only for protocols like TCP/UDP, ...
-        // only add the packets if they communicate with the local machine, that means that rx_tx function has set rx or tx to a value
+        // Add packet to the hash map, if it is communicating with the local machine (Rx or Tx is not 0)
         if (newPacket->getRx() == 0 && newPacket->getTx() == 0)
         {
             // TODO: testing purposes, if the packet is not communicating with the local machine, show the packet, but dont add it to the table
@@ -147,6 +157,11 @@ void PacketHandling::packet_handler(u_char *user_data, const struct pcap_pkthdr*
 }
 
 // function that will capture packets
+/**
+ * @brief Function that will handle packet capture until the user stops the program.
+ * 
+ * @param config to access the interface name and time
+ */
 void PacketHandling::packet_capture(Config &config)
 {
     std::cout << "Packet Capture Starts..." << std::endl;
@@ -155,10 +170,11 @@ void PacketHandling::packet_capture(Config &config)
 
     std::vector<std::string> local_ips = get_local_ips(/*interface*/);
 
-    // opens the interface that is displayed in the terminal
+    // Opens the ncurses interface that is displayed in the terminal
     Display display;
-    display.print_packets(config.getTime());
+    display.print_packets(config.getTime()); // show the header straight away before the first packet is captured and the screen is refreshing automatically
     
+    // loop for capturing packets on interface defined by global_handle, looping infinitely until the user stops the program, callback function is packet_handler
     if (pcap_loop(global_handle, 0, PacketHandling::packet_handler, reinterpret_cast<u_char *>(&local_ips)) == -1) {
         std::cerr << "Error capturing packets: " << pcap_geterr(global_handle) << std::endl;
     }

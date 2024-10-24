@@ -1,28 +1,55 @@
-// #include <iostream>
-//#include <string>
-// #include <vector>
+/**
+ * @file config.cpp
+ * @author Tomáš Barták (xbarta51)
+ */
+
+
 #include <getopt.h>
 #include <memory> // std::unique_ptr
 #include "config.h"
 
+/**
+ * @brief Constructor for a Config object with default values.
+ * @return Config object with default values.
+ */
 Config::Config() : interface(""), sort('b'), time(1) {}
 
+/**
+ * @brief Getter method for interface.
+ * 
+ * @return name of the selected interface.
+ */
 std::string Config::getInterface() const
 {
     return interface;
 }
 
+/**
+ * @brief Getter method for sort.
+ * 
+ * @return sort type ('b' for bytes, 'p' for packets).
+ */
 char Config::getSort() const
 {
     return sort;
 }
 
+/**
+ * @brief Getter method for time interval for refreshing statistics.
+ * 
+ * @return time interval set by the user (in seconds).
+ */
 int Config::getTime() const
 {
     return time;
 }
 
-// function that will parse arguments entered using the command line
+/**
+ * @brief function that handles the parsing of arguments from the command line.
+ * 
+ * @param argc count of arguments passed from the command line.
+ * @param argv array of arguments passed from the command line.
+ */
 void Config::parse_args(int argc, char *argv[])
 {
     int opt;
@@ -42,9 +69,9 @@ void Config::parse_args(int argc, char *argv[])
             {
                 sort = 'p';
             }
-            else
+            else // invalid sort option
             {
-                std::cerr << "Invalid argument used after -s. Valid options are 'b' for bytes or 'p' for packets." << std::endl;
+                std::cerr << "Invalid argument used after -s. Valid options are either 'b' for bytes or 'p' for packets." << std::endl;
                 exit(EXIT_FAILURE);
             }
             break;
@@ -56,7 +83,7 @@ void Config::parse_args(int argc, char *argv[])
                 exit(EXIT_FAILURE);
             }
             break;
-        default:
+        default: // invalid argument
             std::cerr << "Usage: " << argv[0] << " -i <interface> [-s <b|p>] [-t <time>]" << std::endl;
             exit(EXIT_FAILURE);
         }

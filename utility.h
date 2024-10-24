@@ -1,3 +1,8 @@
+/**
+ * @file utility.h
+ * @author Tomáš Barták (xbarta51)
+ */
+
 #ifndef UTILITY_H
 #define UTILITY_H
 

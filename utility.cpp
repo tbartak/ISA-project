@@ -1,3 +1,8 @@
+/**
+ * @file utility.cpp
+ * @author Tomáš Barták (xbarta51)
+ */
+
 #include <pcap.h>
 #include <iostream>
 #include <string>

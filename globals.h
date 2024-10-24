@@ -1,3 +1,8 @@
+/**
+ * @file globals.h
+ * @author Tomáš Barták (xbarta51)
+ */
+
 #ifndef GLOBALS_H
 #define GLOBALS_H
 

@@ -1,3 +1,8 @@
+/**
+ * @file globals.cpp
+ * @author Tomáš Barták (xbarta51)
+ */
+
 #include "globals.h"
 
 PacketConfig packet_config;
