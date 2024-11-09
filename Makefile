@@ -12,3 +12,6 @@ run lo:
 
 run:
 	sudo ./$(EXEC) -i eth0
+
+run 10s:
+	sudo ./$(EXEC) -i eth0 -t 10

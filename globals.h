@@ -8,6 +8,7 @@
 
 #include "sorting.h"
 #include <iostream>
+#include <atomic>
 #include "packet_config.h"
 
 #include <pcap.h>
@@ -16,7 +17,7 @@ extern PacketConfig packet_config;
 
 extern Sorting sorting;
 
-// extern std::atomic<bool> stop_flag;
+extern std::atomic<bool> stop_flag;
 
 extern pcap_t *global_handle;
 

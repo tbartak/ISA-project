@@ -167,7 +167,9 @@ void PacketHandling::packet_capture(Config &config)
 
     std::string interface = config.getInterface();
 
-    std::vector<std::string> local_ips = get_local_ips(/*interface*/);
+    // Get local IP addresses
+    Utility utility;
+    std::vector<std::string> local_ips = utility.get_local_ips(/*interface*/);
 
     // Opens the ncurses interface that is displayed in the terminal
     Display display;

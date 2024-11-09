@@ -51,6 +51,7 @@ Display::~Display()
  */
 void Display::print_packets(int time)
 {
+    Utility utility;
     clear(); // clear the screen
 
     double interval = (double)time; // interval in seconds
@@ -80,10 +81,10 @@ void Display::print_packets(int time)
                 mvprintw(row, SRC_IP_COL, "%s", packet.getSrcIp().c_str());
                 mvprintw(row, DST_IP_COL, "%s", packet.getDstIp().c_str());
                 mvprintw(row, PROTOCOL_COL, "%s", packet.getProtocol().c_str());
-                mvprintw(row, LENGTH_COL, "%sB/s", convert_data_amount(packet.getLength() / interval).c_str());
-                mvprintw(row, RX_COL, "%sB/s", convert_data_amount(packet.getRx() / interval).c_str());
-                mvprintw(row, TX_COL, "%sB/s", convert_data_amount(packet.getTx() / interval).c_str());
-                mvprintw(row, PACKET_COUNT_COL, "%sp/s", convert_data_amount(packet.getPacketCount() / interval).c_str());
+                mvprintw(row, LENGTH_COL, "%sB/s", utility.convert_data_amount(packet.getLength() / interval).c_str());
+                mvprintw(row, RX_COL, "%sB/s", utility.convert_data_amount(packet.getRx() / interval).c_str());
+                mvprintw(row, TX_COL, "%sB/s", utility.convert_data_amount(packet.getTx() / interval).c_str());
+                mvprintw(row, PACKET_COUNT_COL, "%sp/s", utility.convert_data_amount(packet.getPacketCount() / interval).c_str());
             }
             else // if the port is defined, print the IP address and the port
             {
@@ -91,10 +92,10 @@ void Display::print_packets(int time)
                 mvprintw(row, SRC_IP_COL, "%s:%d", packet.getSrcIp().c_str(), packet.getSrcPort());
                 mvprintw(row, DST_IP_COL, "%s:%d", packet.getDstIp().c_str(), packet.getDstPort());
                 mvprintw(row, PROTOCOL_COL, "%s", packet.getProtocol().c_str());
-                mvprintw(row, LENGTH_COL, "%sB/s", convert_data_amount(packet.getLength() / interval).c_str());
-                mvprintw(row, RX_COL, "%sB/s", convert_data_amount(packet.getRx() / interval).c_str());
-                mvprintw(row, TX_COL, "%sB/s", convert_data_amount(packet.getTx() / interval).c_str());
-                mvprintw(row, PACKET_COUNT_COL, "%sp/s", convert_data_amount(packet.getPacketCount() / interval).c_str());
+                mvprintw(row, LENGTH_COL, "%sB/s", utility.convert_data_amount(packet.getLength() / interval).c_str());
+                mvprintw(row, RX_COL, "%sB/s", utility.convert_data_amount(packet.getRx() / interval).c_str());
+                mvprintw(row, TX_COL, "%sB/s", utility.convert_data_amount(packet.getTx() / interval).c_str());
+                mvprintw(row, PACKET_COUNT_COL, "%sp/s", utility.convert_data_amount(packet.getPacketCount() / interval).c_str());
             }
             row++; // move to the next row
         }
@@ -133,6 +134,7 @@ void Display::timer(int time, char sort)
         sorting.search_most_traffic(); // search for the most traffic in the last time interval
         sorting.sort_most_traffic(sort); // sort it by bytes or packets afterwards
         print_packets(time);
-        clear_data(); // TODO: or clear_packets()? to clear all data of the packets? could be better for memory management
+        Utility utility;
+        utility.clear_data(); // TODO: or clear_packets()? to clear all data of the packets? could be better for memory management
     }
 }

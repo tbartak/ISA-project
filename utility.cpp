@@ -17,20 +17,24 @@
 #include "packet_config.h"
 #include "globals.h"
 
-// columns widths for ncurses
-#define SRC_IP_COL 0
-#define DST_IP_COL 35
-#define PROTOCOL_COL 75
-#define LENGTH_COL 90
-#define RX_COL 105
-#define TX_COL 120
-#define PACKET_COUNT_COL 135
-#define TIMESTAMP_COL 150
+/**
+ * @brief Constructor for a new Utility object.
+ * 
+ */
+Utility::Utility() {}
 
-std::atomic<bool> stop_flag(false);
+/**
+ * @brief Destructor for the Utility object.
+ * 
+ */
+Utility::~Utility() {}
 
-// Function to get all local IP addresses
-std::vector<std::string> get_local_ips(/*std::string &interface_name*/) {
+/**
+ * @brief Function that gets all local IP addresses of the current machine.
+ * @return vector of strings with all local IP addresses.
+ * 
+ */
+std::vector<std::string> Utility::get_local_ips(/*std::string &interface_name*/) {
     std::vector<std::string> local_ips;
     struct ifaddrs *ifaddr, *ifa;
     char ip[INET6_ADDRSTRLEN]; // enough for both IPv4 and IPv6 addresses
@@ -67,10 +71,11 @@ std::vector<std::string> get_local_ips(/*std::string &interface_name*/) {
     return local_ips;
 }
 
-
-
-// function to clear data transmitted and received
-void clear_data()
+/**
+ * @brief Function that clears the data transmitted and received.
+ * 
+ */
+void Utility::clear_data()
 {
     for (auto &packet : packet_config.getPacketTable())
     {
@@ -84,13 +89,19 @@ void clear_data()
     sorting.clear_top_connections();
 }
 
-// function to clear the hash map
-void clear_packets()
+/**
+ * @brief Function that clears the hash map with all packets.
+ * 
+ */
+void Utility::clear_packets()
 {
     packet_config.clear_packet_table();
 }
 
-// function that looks for Ctrl+C and sets the stop flag to true
+/**
+ * @brief Function that handles the signal from the user (Ctrl+C) and sets stop flag to true.
+ * 
+ */
 void signal_handler(int signal)
 {
     if (signal == SIGINT)
@@ -102,17 +113,28 @@ void signal_handler(int signal)
     }
 }
 
-// function that will shutdown the program gracefully
-void shutdown(std::thread &timer_thread)
+/**
+ * @brief Function that will shutdown the program gracefully.
+ * 
+ * @param timer_thread thread that controls the display and refresh of the screen.
+ * 
+ */
+void Utility::shutdown(std::thread &timer_thread)
 {
     NetworkInterface network_interface;
     timer_thread.join();
     network_interface.close_interface();
-    clear_packets();
+    Utility::clear_packets();
 }
 
-// function that converts the data amount to more readable format
-std::string convert_data_amount(double data_amount)
+/**
+ * @brief Function that converts the data amount to a more readable format.
+ * 
+ * @param data_amount data amount that is converted.
+ * @return string with the converted data amount.
+ * 
+ */
+std::string Utility::convert_data_amount(double data_amount)
 {
     // constants for data amounts
     double K = 1024;

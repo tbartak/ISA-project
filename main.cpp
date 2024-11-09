@@ -26,6 +26,8 @@ int main(int argc, char *argv[])
     Display display;
     Config config;
     NetworkInterface network_interface;
+    Utility utility;
+    PacketHandling packet_handling;
 
     config.parse_args(argc, argv); // parse arguments from the command line
 
@@ -45,7 +47,6 @@ int main(int argc, char *argv[])
     std::thread timer_thread(display.timer, config.getTime(), config.getSort());
 
     // capture packets
-    PacketHandling packet_handling;
     packet_handling.packet_capture(config);
 
     // after receiving SIGINT (Ctrl+C), stop the program
@@ -53,7 +54,7 @@ int main(int argc, char *argv[])
     // TODO: this can be handled by shutdown function
     timer_thread.join(); // close the timer thread
     network_interface.close_interface(); // close the network interface
-    clear_packets(); // clear all packets from the packet table
+    utility.clear_packets(); // clear all packets from the packet table
     // shutdown();
 
     std::cout << "Program finished. Resources cleaned." << std::endl;

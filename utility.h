@@ -29,7 +29,26 @@
 #include "packet_info.h"
 #include "globals.h"
 
-extern std::atomic<bool> stop_flag;  // Declare the stop flag as external
+/**
+ * @brief Class for Utility methods.
+ * 
+ */
+class Utility {
+    public:
+        // Constructor
+        Utility();
+
+        //Destructor
+        ~Utility();
+
+        // Methods
+        static std::vector<std::string> get_local_ips();
+        static void clear_data();
+        static void clear_packets();
+        static void signal_handler(int signal);
+        static void shutdown(std::thread &timer_thread);
+        static std::string convert_data_amount(double data_amount);
+};
 
 std::vector<std::string> get_local_ips(/*std::string &interface_name*/);
 void clear_data();
