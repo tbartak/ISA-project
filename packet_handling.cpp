@@ -20,7 +20,6 @@ PacketHandling::PacketHandling() {}
  */
 PacketHandling::~PacketHandling() {}
 
-// function that will handle each packet captured and print/save results into a structure
 /**
  * @brief Function that handles each packet captured.
  * 

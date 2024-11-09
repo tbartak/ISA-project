@@ -11,7 +11,6 @@
  */
 PacketConfig::PacketConfig() {}
 
-// getter for packet_table
 /**
  * @brief Getter for a hash map that stores all packets.
  * 
