@@ -24,11 +24,10 @@ int main(int argc, char *argv[])
 {
     // creating instances of classes
     Display display;
-
     Config config;
-    config.parse_args(argc, argv); // parse arguments from the command line
-
     NetworkInterface network_interface;
+
+    config.parse_args(argc, argv); // parse arguments from the command line
 
     // check selected interface
     if (!network_interface.open_interface(config.getInterface()))
@@ -60,6 +59,8 @@ int main(int argc, char *argv[])
     std::cout << "Program finished. Resources cleaned." << std::endl;
 
     // TODO: Implement the rest of the program
+
+    // TODO: add RxPackets and TxPackets to the packet table -> adjust ncurses display to show both incoming and outgoing traffic
 
     // tests (unit tests, integration tests) + merlin testing (valgrind, ...)
 
