@@ -15,6 +15,11 @@
 Config::Config() : interface(""), sort('b'), time(1) {}
 
 /**
+ * @brief Destructor for the Config object.
+ */
+Config::~Config() {}
+
+/**
  * @brief Getter method for interface.
  * 
  * @return name of the selected interface.
@@ -87,12 +92,5 @@ void Config::parse_args(int argc, char *argv[])
             std::cerr << "Usage: " << argv[0] << " -i <interface> [-s <b|p>] [-t <time>]" << std::endl;
             exit(EXIT_FAILURE);
         }
-    }
-
-    // Interface must be specified
-    if (interface.empty())
-    {
-        std::cerr << "Network interface (-i) must be specified." << std::endl;
-        exit(EXIT_FAILURE);
     }
 }

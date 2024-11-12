@@ -26,6 +26,12 @@ src_ip(src_ip), src_port(src_port), dst_ip(dst_ip), dst_port(dst_port), protocol
 Packet::Packet() : src_ip(""), src_port(-1), dst_ip(""), dst_port(-1), protocol(""), length(0), rx(0), tx(0), packet_count(0) {}
 
 /**
+ * @brief Destructor for the Packet object.
+ * 
+ */
+Packet::~Packet() {}
+
+/**
  * @brief Getter for the source IP address.
  * 
  * @return source IP address of the packet.

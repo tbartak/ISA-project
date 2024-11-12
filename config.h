@@ -20,6 +20,9 @@ class Config
         // Constructor
         Config();
 
+        // Destructor
+        ~Config();
+
         // Methods
         void parse_args(int argc, char *argv[]);
 

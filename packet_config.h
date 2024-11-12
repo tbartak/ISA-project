@@ -21,6 +21,9 @@ class PacketConfig {
         // Constructor
         PacketConfig();
 
+        // Destructor
+        ~PacketConfig();
+
         // Methods
         void rx_tx(Packet &packet, const std::vector<std::string> &local_ips);
         void add_packet(std::string key, Packet packet);

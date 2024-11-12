@@ -18,6 +18,9 @@ class Packet
         // Constructor
         Packet();
         Packet(std::string src_ip, int src_port, std::string dst_ip, int dst_port, std::string protocol, int length, int rx, int tx, int packet_count);
+
+        // Destructor
+        ~Packet();
         
         // Getters
         std::string getSrcIp() const;

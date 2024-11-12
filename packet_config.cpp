@@ -12,6 +12,12 @@
 PacketConfig::PacketConfig() {}
 
 /**
+ * @brief Destructor for the Packet Config object
+ * 
+ */
+PacketConfig::~PacketConfig() {}
+
+/**
  * @brief Getter for a hash map that stores all packets.
  * 
  * @return hash map with all packets captured by the program.
