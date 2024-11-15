@@ -62,23 +62,23 @@ void PacketConfig::add_packet(std::string key, Packet packet)
  */
 void PacketConfig::rx_tx(Packet &packet, const std::vector<std::string> &local_ips)
 {
-    if (std::find(local_ips.begin(), local_ips.end(), packet.getSrcIp()) != local_ips.end()) // look whether any of the local IPs match the source IP, then its incoming (Rx)
+    if (std::find(local_ips.begin(), local_ips.end(), packet.getDstIp()) != local_ips.end()) // look whether any of the local IPs match the destination IP, then its incoming (Rx)
     {
-        packet.setRx(packet.getLength());
-        packet.setRxPacketCount(1); // set the count of received packets
-    }
-    else if (std::find(local_ips.begin(), local_ips.end(), packet.getDstIp()) != local_ips.end()) // look whether any of the local IPs match the destination IP, then its outgoing (Tx)
-    {
-        // swap the source and destination IP addresses, when the packet is outgoing, so it combines the incoming and outgoing traffic from one connection
+        // swap the source and destination IP addresses, when the packet is incoming, so it combines the incoming and outgoing traffic into one connection
         std::string temp_src_ip = packet.getSrcIp();
         std::string temp_dst_ip = packet.getDstIp();
         packet.setSrcIp(temp_dst_ip);
         packet.setDstIp(temp_src_ip);
+        packet.setRx(packet.getLength());
+        packet.setRxPacketCount(1); // set the count of received packets
+    }
+    else if (std::find(local_ips.begin(), local_ips.end(), packet.getSrcIp()) != local_ips.end()) // look whether any of the local IPs match the source IP, then its outgoing (Tx)
+    {
         packet.setTx(packet.getLength());
         packet.setTxPacketCount(1); // set the count of transmitted packets
     }
     else // if the packet is neither incoming nor outgoing, only happens if the local IP is not found, then the packet is ignored
-    { 
+    { // TODO: remove else if -> else ... aby zachytávalo i né jen lokální IP adresy
         return;
     }   
 }

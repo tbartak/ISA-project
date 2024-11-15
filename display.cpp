@@ -62,12 +62,19 @@ void Display::print_packets(int time)
     mvprintw(row, SRC_IP_COL, "Src IP:port");
     mvprintw(row, DST_IP_COL, "Dst IP:port");
     mvprintw(row, PROTOCOL_COL, "Proto");
-    mvprintw(row, LENGTH_COL, "Length");
-    mvprintw(row, RX_COL, "RX");
-    mvprintw(row, TX_COL, "TX");
-    mvprintw(row, PACKET_COUNT_COL, "Packet Count");
-    mvprintw(row, RX_PACKET_COUNT_COL, "RX Packet Count");
-    mvprintw(row, TX_PACKET_COUNT_COL, "TX Packet Count");
+    // mvprintw(row, LENGTH_COL, "Length");
+    mvprintw(row, RX_COL, "Rx");
+    mvprintw(row, TX_COL, "Tx");
+    // mvprintw(row, PACKET_COUNT_COL, "Packet Count");
+    // mvprintw(row, RX_PACKET_COUNT_COL, "RX Packet Count");
+    // mvprintw(row, TX_PACKET_COUNT_COL, "TX Packet Count");
+
+    row++; // Rx and Tx header under the main header
+
+    mvprintw(row, RX_BYTES_COL, "b/s");
+    mvprintw(row, TX_BYTES_COL, "b/s");
+    mvprintw(row, RX_PACKET_COUNT_COL, "p/s");
+    mvprintw(row, TX_PACKET_COUNT_COL, "p/s");
 
     row++; // to write below the header
 
@@ -83,12 +90,12 @@ void Display::print_packets(int time)
                 mvprintw(row, SRC_IP_COL, "%s", packet.getSrcIp().c_str());
                 mvprintw(row, DST_IP_COL, "%s", packet.getDstIp().c_str());
                 mvprintw(row, PROTOCOL_COL, "%s", packet.getProtocol().c_str());
-                mvprintw(row, LENGTH_COL, "%sB/s", utility.convert_data_amount(packet.getLength() / interval).c_str());
-                mvprintw(row, RX_COL, "%sB/s", utility.convert_data_amount(packet.getRx() / interval).c_str());
-                mvprintw(row, TX_COL, "%sB/s", utility.convert_data_amount(packet.getTx() / interval).c_str());
-                mvprintw(row, PACKET_COUNT_COL, "%sp/s", utility.convert_data_amount(packet.getPacketCount() / interval).c_str());
-                mvprintw(row, RX_PACKET_COUNT_COL, "%sp/s", utility.convert_data_amount(packet.getRxPacketCount() / interval).c_str());
-                mvprintw(row, TX_PACKET_COUNT_COL, "%sp/s", utility.convert_data_amount(packet.getTxPacketCount() / interval).c_str());
+                // mvprintw(row, LENGTH_COL, "%sB/s", utility.convert_data_amount(packet.getLength() / interval).c_str());
+                mvprintw(row, RX_BYTES_COL, "%s", utility.convert_data_amount(packet.getRx() / interval).c_str());
+                mvprintw(row, TX_BYTES_COL, "%s", utility.convert_data_amount(packet.getTx() / interval).c_str());
+                // mvprintw(row, PACKET_COUNT_COL, "%sp/s", utility.convert_data_amount(packet.getPacketCount() / interval).c_str());
+                mvprintw(row, RX_PACKET_COUNT_COL, "%s", utility.convert_data_amount(packet.getRxPacketCount() / interval).c_str());
+                mvprintw(row, TX_PACKET_COUNT_COL, "%s", utility.convert_data_amount(packet.getTxPacketCount() / interval).c_str());
             }
             else // if the port is defined, print the IP address and the port
             {
@@ -96,12 +103,12 @@ void Display::print_packets(int time)
                 mvprintw(row, SRC_IP_COL, "%s:%d", packet.getSrcIp().c_str(), packet.getSrcPort());
                 mvprintw(row, DST_IP_COL, "%s:%d", packet.getDstIp().c_str(), packet.getDstPort());
                 mvprintw(row, PROTOCOL_COL, "%s", packet.getProtocol().c_str());
-                mvprintw(row, LENGTH_COL, "%sB/s", utility.convert_data_amount(packet.getLength() / interval).c_str());
-                mvprintw(row, RX_COL, "%sB/s", utility.convert_data_amount(packet.getRx() / interval).c_str());
-                mvprintw(row, TX_COL, "%sB/s", utility.convert_data_amount(packet.getTx() / interval).c_str());
-                mvprintw(row, PACKET_COUNT_COL, "%sp/s", utility.convert_data_amount(packet.getPacketCount() / interval).c_str());
-                mvprintw(row, RX_PACKET_COUNT_COL, "%sp/s", utility.convert_data_amount(packet.getRxPacketCount() / interval).c_str());
-                mvprintw(row, TX_PACKET_COUNT_COL, "%sp/s", utility.convert_data_amount(packet.getTxPacketCount() / interval).c_str());
+                // mvprintw(row, LENGTH_COL, "%sB/s", utility.convert_data_amount(packet.getLength() / interval).c_str());
+                mvprintw(row, RX_BYTES_COL, "%s", utility.convert_data_amount(packet.getRx() / interval).c_str());
+                mvprintw(row, TX_BYTES_COL, "%s", utility.convert_data_amount(packet.getTx() / interval).c_str());
+                // mvprintw(row, PACKET_COUNT_COL, "%sp/s", utility.convert_data_amount(packet.getPacketCount() / interval).c_str());
+                mvprintw(row, RX_PACKET_COUNT_COL, "%s", utility.convert_data_amount(packet.getRxPacketCount() / interval).c_str());
+                mvprintw(row, TX_PACKET_COUNT_COL, "%s", utility.convert_data_amount(packet.getTxPacketCount() / interval).c_str());
             }
             row++; // move to the next row
         }

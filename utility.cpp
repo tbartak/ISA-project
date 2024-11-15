@@ -33,6 +33,8 @@ Utility::~Utility() {}
  * @brief Function that gets all local IP addresses of the current machine.
  * @return vector of strings with all local IP addresses.
  * 
+ * Based on the code from: https://stackoverflow.com/questions/212528/how-can-i-get-the-ip-address-of-a-linux-machine
+ * and on: https://dev.to/fmtweisszwerg/cc-how-to-get-all-interface-addresses-on-the-local-device-3pki
  */
 std::vector<std::string> Utility::get_local_ips(/*std::string &interface_name*/) {
     std::vector<std::string> local_ips;
@@ -47,23 +49,22 @@ std::vector<std::string> Utility::get_local_ips(/*std::string &interface_name*/)
 
     // Loop through the interfaces and collect IP addresses
     for (ifa = ifaddr; ifa != nullptr; ifa = ifa->ifa_next) {
-        if (ifa->ifa_addr == nullptr) {
-            continue;
-        }        
+        if (ifa->ifa_addr != nullptr)
+        {
+            int family = ifa->ifa_addr->sa_family;
 
-        int family = ifa->ifa_addr->sa_family;
-
-        // Handle IPv4 addresses
-        if (family == AF_INET) {
-            struct sockaddr_in *sa = (struct sockaddr_in *)ifa->ifa_addr;
-            inet_ntop(AF_INET, &(sa->sin_addr), ip, INET_ADDRSTRLEN);
-            local_ips.push_back(std::string(ip));
-        }
-        // Handle IPv6 addresses
-        else if (family == AF_INET6) {
-            struct sockaddr_in6 *sa = (struct sockaddr_in6 *)ifa->ifa_addr;
-            inet_ntop(AF_INET6, &(sa->sin6_addr), ip, INET6_ADDRSTRLEN);
-            local_ips.push_back(std::string(ip));
+            // Handle IPv4 addresses
+            if (family == AF_INET) {
+                struct sockaddr_in *sa = (struct sockaddr_in *)ifa->ifa_addr;
+                inet_ntop(AF_INET, &(sa->sin_addr), ip, INET_ADDRSTRLEN);
+                local_ips.push_back(std::string(ip));
+            }
+            // Handle IPv6 addresses
+            else if (family == AF_INET6) {
+                struct sockaddr_in6 *sa = (struct sockaddr_in6 *)ifa->ifa_addr;
+                inet_ntop(AF_INET6, &(sa->sin6_addr), ip, INET6_ADDRSTRLEN);
+                local_ips.push_back(std::string(ip));
+            }
         }
     }
 

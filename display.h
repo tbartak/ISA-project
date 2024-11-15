@@ -20,12 +20,14 @@
 #define SRC_IP_COL 0
 #define DST_IP_COL 35
 #define PROTOCOL_COL 75
-#define LENGTH_COL 90
-#define RX_COL 105
-#define TX_COL 120
-#define PACKET_COUNT_COL 135
-#define RX_PACKET_COUNT_COL 150
-#define TX_PACKET_COUNT_COL 165
+// #define LENGTH_COL 90
+#define RX_COL 90
+#define RX_BYTES_COL 85
+#define RX_PACKET_COUNT_COL 95
+#define TX_COL 110
+#define TX_BYTES_COL 105
+#define TX_PACKET_COUNT_COL 115
+// #define PACKET_COUNT_COL 135
 
 /**
  * @brief class for displaying packets in the terminal
