@@ -9,6 +9,8 @@
 #include <iostream>
 #include <string>
 #include <pcap.h>
+#include <cstring>
+
 
 /**
  * @brief Class for handling network interfaces.

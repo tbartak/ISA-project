@@ -3,9 +3,6 @@
  * @author Tomáš Barták (xbarta51)
  */
 
-
-#include <getopt.h>
-#include <memory> // std::unique_ptr
 #include "config.h"
 
 /**

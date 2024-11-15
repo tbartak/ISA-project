@@ -12,7 +12,6 @@
 #include <algorithm> // std::sort
 #include <iostream>
 #include "packet_config.h"
-// #include "globals.h"
 
 /**
  * @brief Class for sorting packets based on the traffic.

@@ -4,9 +4,7 @@
  */
 
 #include "packet_info.h"
-#include <string>
 
-// TODO: could be used instead of make_unique, currently not used
 /**
  * @brief Constructor for a new Packet object.
  * 
@@ -20,7 +18,7 @@
  * @param tx Transmitted bytes.
  * @param rx_packet_count Count of packets received.
  * @param tx_packet_count Count of packets transmitted.
- * @param packet_count Count of packets captured. // TODO: packet_count should also be for rx and tx, not all together, need to change
+ * @param packet_count Count of packets captured.
  */
 Packet::Packet(std::string src_ip, int src_port, std::string dst_ip, int dst_port, std::string protocol, int length, int rx, int tx, int rx_packet_count, int tx_packet_count, int packet_count) : 
 src_ip(src_ip), src_port(src_port), dst_ip(dst_ip), dst_port(dst_port), protocol(protocol), length(length), rx(rx), tx(tx), rx_packet_count(rx_packet_count), tx_packet_count(tx_packet_count), packet_count(packet_count) {}

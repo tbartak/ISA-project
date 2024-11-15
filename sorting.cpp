@@ -19,7 +19,6 @@ Sorting::Sorting() {}
 Sorting::~Sorting() {}
 
 
-// function that will search for the top 10 connections with most traffic
 /**
  * @brief Function that goes through the packet table to find the top 10 connections with most traffic.
  * 
@@ -39,13 +38,6 @@ void Sorting::search_most_traffic()
  */
 void Sorting::create_most_traffic_array(Packet packet)
 {
-    // if the packet doesnt have any traffic, dont add it to the table (no rx or tx) // this will prevent packets that are not communicating with the local machine to be displayed
-    // TODO: in case we want to save the packets that are not communicating with the local machine to the structure, but not the table, use this instead of the return in packet_handler
-    // if (packet.rx == 0 && packet.tx == 0)
-    // {
-    //     return;
-    // }
-    
     // If the table is empty, add the first packet
     if (top_connections.empty())
     {

@@ -4,7 +4,6 @@
  */
 
 #include "network_interface.h"
-#include <cstring>
 
 /**
  * @brief Constructor for a new Network Interface object
@@ -28,7 +27,6 @@ NetworkInterface::~NetworkInterface()
     }
 }
 
-// function that will open the selected interface and exit with an error if the interface is not available
 /**
  * @brief Function that will open the selected interface and exit with an error, if the interface is not available.
  * 
@@ -40,7 +38,7 @@ bool NetworkInterface::open_interface(const std::string &interface)
 {
     char errbuf[PCAP_ERRBUF_SIZE];
 
-    handle = pcap_open_live(interface.c_str(), BUFSIZ, 0, 1000, errbuf); // try to open the interface, promiscuous mode is disabled, timeout is 1000ms
+    handle = pcap_open_live(interface.c_str(), BUFSIZ, 1, 1000, errbuf); // try to open the interface, promiscuous mode is enabled, timeout is 1000ms
     if (handle == NULL)
     {
         std::cerr << "Couldn't open interface " << interface << ": " << errbuf << std::endl;

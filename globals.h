@@ -10,7 +10,6 @@
 #include <iostream>
 #include <atomic>
 #include "packet_config.h"
-
 #include <pcap.h>
 
 extern PacketConfig packet_config;

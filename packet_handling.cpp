@@ -4,9 +4,6 @@
  */
 
 #include "packet_handling.h"
-#include <memory> // std::unique_ptr
-#include "utility.h"
-#include "globals.h"
 
 /**
  * @brief Constructor for a new Packet Handling object.
@@ -85,7 +82,7 @@ void PacketHandling::packet_handler(u_char *user_data, const struct pcap_pkthdr*
             newPacket->setDstPort(ntohs(udp_header->uh_dport));
         }
     }
-    else if (ntohs(eth_header->ether_type) == ETHERTYPE_IPV6) { // TODO: needs to be tested, seems to be working though
+    else if (ntohs(eth_header->ether_type) == ETHERTYPE_IPV6) {
         // Extract the IPv6 header
         const struct ip6_hdr *ip6_header = (struct ip6_hdr*)(packet + sizeof(struct ether_header)); // IPv6 header is after ethernet header
         
@@ -128,11 +125,11 @@ void PacketHandling::packet_handler(u_char *user_data, const struct pcap_pkthdr*
         packet_config.rx_tx(*newPacket, *local_ips);
 
 
-        // Add packet to the hash map, if it is communicating with the local machine (Rx or Tx is not 0) // TODO: accept packets that are not communicating with the local machine
-        if (newPacket->getRx() == 0 && newPacket->getTx() == 0)
-        {
-            return;
-        }
+        // In case we only want to save packets communicating with the local machine (Rx or Tx is not 0) and promiscuous mode set to disabled
+        // if (newPacket->getRx() == 0 && newPacket->getTx() == 0)
+        // {
+        //     return;
+        // }
         if (newPacket->getSrcPort() == -1 && newPacket->getDstPort() == -1)
         {
             packet_config.add_packet(newPacket->getSrcIp() + newPacket->getDstIp() + newPacket->getProtocol(), *newPacket);

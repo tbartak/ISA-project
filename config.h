@@ -8,8 +8,8 @@
 
 #include <iostream>
 #include <string>
-//#include <vector>
-//#include <getopt.h>
+#include <getopt.h>
+#include <memory> // std::unique_ptr
 
 /**
  * @brief class for storing configuration values

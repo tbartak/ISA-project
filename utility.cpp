@@ -3,19 +3,7 @@
  * @author Tomáš Barták (xbarta51)
  */
 
-#include <pcap.h>
-#include <iostream>
-#include <string>
 #include "utility.h"
-#include <netinet/ether.h> // struct ether_header
-#include <netinet/ip.h> // struct ip
-#include <netinet/tcp.h> // struct tcphdr
-#include <netinet/udp.h> // struct udphdr
-#include <arpa/inet.h> // inet_ntop
-#include "packet_info.h"
-#include "network_interface.h"
-#include "packet_config.h"
-#include "globals.h"
 
 /**
  * @brief Constructor for a new Utility object.
@@ -105,29 +93,13 @@ void Utility::clear_packets()
  * @brief Function that handles the signal from the user (Ctrl+C) and sets stop flag to true.
  * 
  */
-void signal_handler(int signal)
+void Utility::signal_handler(int signal)
 {
     if (signal == SIGINT)
     {
-        // std::cout << "\nSIGINT received, stopping capture and cleaning up..." << std::endl;
-        // stop_flag = true;
         stop_flag.store(true);
         pcap_breakloop(global_handle);
     }
-}
-
-/**
- * @brief Function that will shutdown the program gracefully.
- * 
- * @param timer_thread thread that controls the display and refresh of the screen.
- * 
- */
-void Utility::shutdown(std::thread &timer_thread)
-{
-    NetworkInterface network_interface;
-    timer_thread.join();
-    network_interface.close_interface();
-    Utility::clear_packets();
 }
 
 /**

@@ -22,6 +22,9 @@
 #include <netinet/ether.h> // struct ether_header
 #include <netinet/ip.h> // struct ip
 #include "display.h"
+#include <memory> // std::unique_ptr
+#include "utility.h"
+#include "globals.h"
 
 /**
  * @brief Class for handling packets.

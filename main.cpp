@@ -7,11 +7,11 @@
 #include "config.h"
 #include "utility.h"
 #include "network_interface.h"
-// #include "display.h"
 #include <functional>
 #include "packet_handling.h"
 #include "globals.h"
 #include "display.h"
+#include <thread>
 
 /**
  * @brief main function that handles the flow of the program.
@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
 
 
     // check for Ctrl+C for graceful shutdown
-    signal(SIGINT, signal_handler);
+    signal(SIGINT, utility.signal_handler);
 
     // start another thread that will control displaying and refresh of the screen
     std::thread timer_thread(display.timer, config.getTime(), config.getSort());
@@ -51,24 +51,13 @@ int main(int argc, char *argv[])
 
     // after receiving SIGINT (Ctrl+C), stop the program
     std::cout << "Program stopped by user." << std::endl;
-    // TODO: this can be handled by shutdown function
     timer_thread.join(); // close the timer thread
     network_interface.close_interface(); // close the network interface
     utility.clear_packets(); // clear all packets from the packet table
-    // shutdown();
 
     std::cout << "Program finished. Resources cleaned." << std::endl;
 
-    // TODO: Implement the rest of the program
-
-    // TODO: dokumentaci předělat na bity
-    // TODO: přidat do dokumentace obrázky programu spuštěného s pcap soubory do sekce testování + přidat zmínku o sudo při spuštění, pokud nejsou dostatečné pravomoce
-    // TODO: promiscuous mode + odstranit else if -> místo toho jen else se stejnými věcmi, ať vypisuje i ostatní spojení
+    // TODO: přidat do dokumentace obrázky programu spuštěného s pcap soubory do sekce testování
     // TODO: případně předělat arg_parser z getopt
-
-    // tests (unit tests, integration tests) + merlin testing (valgrind, ...)
-
-    // documentation (doxygen)
-
     return 0;
 }
