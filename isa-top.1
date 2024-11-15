@@ -22,6 +22,7 @@ It shows statistics such as the destination and source IP addresses, ports (if a
 .TP
 .B \-h
 Prints how the user should run the application.
+.TP
 .B \-i
 Specifies the network interface to capture packets on (e.g., \fIeth0\fR, \fIlo\fR).
 .TP
@@ -53,22 +54,31 @@ Monitor traffic on interface lo, sort by packet count and refresh statistics eve
 Tomáš Barták (login: xbarta51), Created on: 12 November 2024
 
 .SH FILES
+.TP
 .B main.cpp
 Main source file for the application.
+.TP
 .B config.cpp
 Configuration file based on arguments and argument parser.
+.TP
 .B display.cpp
 Displaying and refreshing statistics in terminal.
+.TP
 .B globals.cpp
 Global instances of classes when needed.
+.TP
 .B network_interface.cpp
 Manages capturing on a certain network interface based on user arguments.
+.TP
 .B packet_config.cpp
 Helps save and manage packets into a hash map.
+.TP
 .B packet_handling.cpp
 Captures and handles individual packets.
+.TP
 .B sorting.cpp
 Searches for the connections with biggest bandwidth and sorts them based on user arguments.
+.TP
 .B utility.cpp
 Helper functions.
 
