@@ -10,3 +10,13 @@ all:
 
 run:
 	sudo ./$(EXEC) -i eth0
+
+tar:
+	tar -czf xbarta51.tar.gz \
+		--exclude='.vscode' \
+		--exclude='*.o' \
+		--exclude='.git' \
+		--exclude='.gitignore' \
+		--exclude='*.tar.gz' \
+		--exclude='$(EXEC)' \
+		*.cpp *.h Makefile manual.pdf isa-top.1 LICENSE scapy/

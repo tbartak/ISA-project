@@ -113,6 +113,6 @@ void Display::timer(int time, char sort)
         sorting.sort_most_traffic(sort); // sort it by bytes or packets afterwards
         print_packets(time);
         Utility utility;
-        utility.clear_data(); // TODO: or clear_packets()? to clear all data of the packets? could be better for memory management
+        utility.clear_data();
     }
 }
