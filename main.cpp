@@ -56,8 +56,5 @@ int main(int argc, char *argv[])
     utility.clear_packets(); // clear all packets from the packet table
 
     std::cout << "Program finished. Resources cleaned." << std::endl;
-
-    // TODO: přidat do dokumentace obrázky programu spuštěného s pcap soubory do sekce testování
-    // TODO: případně předělat arg_parser z getopt
     return 0;
 }

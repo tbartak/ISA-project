@@ -55,10 +55,14 @@ int Config::getTime() const
 void Config::parse_args(int argc, char *argv[])
 {
     int opt;
-    while ((opt = getopt(argc, argv, "i:s:t:")) != -1) // -i must be defined, -s and -t are optional, if not defined, default values are used (s = 'b', t = 1)
+    while ((opt = getopt(argc, argv, "hi:s:t:")) != -1) // -i must be defined, -s and -t are optional, if not defined, default values are used (s = 'b', t = 1)
     {
         switch (opt)
         {
+        case 'h': // help
+            std::cout << "Usage: " << argv[0] << " -i <interface> [-s <b|p>] [-t <time>]" << std::endl;
+            exit(EXIT_SUCCESS);
+            break;
         case 'i':
             interface = optarg;
             break;
