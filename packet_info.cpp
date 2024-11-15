@@ -223,6 +223,5 @@ void Packet::addTxPacketCount(int tx_packet_count) { this->tx_packet_count += tx
 /**
  * @brief Function that increments the count of packets.
  * 
- * @param packet_count updated count of packets after increment.
  */
 void Packet::addPacketCount() { this->packet_count += 1; }
