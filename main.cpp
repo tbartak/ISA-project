@@ -62,6 +62,8 @@ int main(int argc, char *argv[])
     // TODO: Implement the rest of the program
 
     // TODO: add RxPackets and TxPackets to the packet table -> adjust ncurses display to show both incoming and outgoing traffic
+    // TODO: zkontrolovat, jestli nemají být bity místo bytů + případně v dokumentaci předělat na bity
+    // TODO: přidat do dokumentace obrázky programu spuštěného s pcap soubory do sekce testování + přidat zmínku o sudo při spuštění, pokud nejsou dostatečné pravomoce
 
     // tests (unit tests, integration tests) + merlin testing (valgrind, ...)
 

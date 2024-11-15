@@ -18,12 +18,14 @@
  * @param length Length of the packet.
  * @param rx Received bytes.
  * @param tx Transmitted bytes.
+ * @param rx_packet_count Count of packets received.
+ * @param tx_packet_count Count of packets transmitted.
  * @param packet_count Count of packets captured. // TODO: packet_count should also be for rx and tx, not all together, need to change
  */
-Packet::Packet(std::string src_ip, int src_port, std::string dst_ip, int dst_port, std::string protocol, int length, int rx, int tx, int packet_count) : 
-src_ip(src_ip), src_port(src_port), dst_ip(dst_ip), dst_port(dst_port), protocol(protocol), length(length), rx(rx), tx(tx), packet_count(packet_count) {}
+Packet::Packet(std::string src_ip, int src_port, std::string dst_ip, int dst_port, std::string protocol, int length, int rx, int tx, int rx_packet_count, int tx_packet_count, int packet_count) : 
+src_ip(src_ip), src_port(src_port), dst_ip(dst_ip), dst_port(dst_port), protocol(protocol), length(length), rx(rx), tx(tx), rx_packet_count(rx_packet_count), tx_packet_count(tx_packet_count), packet_count(packet_count) {}
 
-Packet::Packet() : src_ip(""), src_port(-1), dst_ip(""), dst_port(-1), protocol(""), length(0), rx(0), tx(0), packet_count(0) {}
+Packet::Packet() : src_ip(""), src_port(-1), dst_ip(""), dst_port(-1), protocol(""), length(0), rx(0), tx(0), rx_packet_count(0), tx_packet_count(0), packet_count(0) {}
 
 /**
  * @brief Destructor for the Packet object.
@@ -86,6 +88,20 @@ int Packet::getRx() const { return rx; }
  * @return transmitted bytes of the packet.
  */
 int Packet::getTx() const { return tx; }
+
+/**
+ * @brief Getter for the count of received packets.
+ * 
+ * @return count of received packets.
+ */
+int Packet::getRxPacketCount() const { return rx_packet_count; }
+
+/**
+ * @brief Getter for the count of transmitted packets.
+ * 
+ * @return count of transmitted packets.
+ */
+int Packet::getTxPacketCount() const { return tx_packet_count; }
 
 /**
  * @brief Getter for the count of packets.
@@ -151,6 +167,20 @@ void Packet::setRx(int rx) { this->rx = rx; }
 void Packet::setTx(int tx) { this->tx = tx; }
 
 /**
+ * @brief Setter for the count of received packets.
+ * 
+ * @param rx_packet_count count of received packets.
+ */
+void Packet::setRxPacketCount(int rx_packet_count) { this->rx_packet_count = rx_packet_count; }
+
+/**
+ * @brief Setter for the count of transmitted packets.
+ * 
+ * @param tx_packet_count count of transmitted packets.
+ */
+void Packet::setTxPacketCount(int tx_packet_count) { this->tx_packet_count = tx_packet_count; }
+
+/**
  * @brief Setter for the count of packets.
  * 
  * @param packet_count count of packets.
@@ -177,6 +207,20 @@ void Packet::addRx(int rx) { this->rx += rx; }
  * @param tx updated transmitted bytes after addition.
  */
 void Packet::addTx(int tx) { this->tx += tx; }
+
+/**
+ * @brief Function that increments the count of received packets.
+ * 
+ * @param rx_packet_count updated count of received packets after increment.
+ */
+void Packet::addRxPacketCount(int rx_packet_count) { this->rx_packet_count += rx_packet_count; }
+
+/**
+ * @brief Function that increments the count of transmitted packets.
+ * 
+ * @param tx_packet_count updated count of transmitted packets after increment.
+ */
+void Packet::addTxPacketCount(int tx_packet_count) { this->tx_packet_count += tx_packet_count; }
 
 /**
  * @brief Function that increments the count of packets.

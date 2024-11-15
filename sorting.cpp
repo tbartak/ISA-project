@@ -85,8 +85,8 @@ void Sorting::sort_most_traffic(char sort_by)
         std::sort(top_connections.begin(), top_connections.end(), [](Packet a, Packet b) { return ((a.getRx() + a.getTx()) > (b.getRx() + b.getTx())); });
     }
     else if (sort_by == 'p')
-    { // TODO: packet_count bude mít rx a tx, né jen celkově
-        std::sort(top_connections.begin(), top_connections.end(), [](Packet a, Packet b) { return a.getPacketCount() > b.getPacketCount(); });
+    {
+        std::sort(top_connections.begin(), top_connections.end(), [](Packet a, Packet b) { return ((a.getRxPacketCount() +  a.getTxPacketCount()) > (b.getRxPacketCount() + b.getTxPacketCount())); });
     }
     else
     {

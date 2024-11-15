@@ -1,0 +1,83 @@
+.TH ISA-TOP 1 "12 November 2024" "isa-top version 1.0" "Network Bandwidth Calculating Tool"
+
+.SH NAME
+isa-top \- network bandwidth calculating tool
+
+.SH SYNOPSIS
+.B isa-top
+.RI \-i " <interface_name> "
+.RI [ \-s " <b|p>" ]
+.RI [ \-t " <interval_number>" ]
+
+.SH DESCRIPTION
+.B isa-top
+is a tool for calculating bandwidth between individual connections. 
+It let's the user choose which interface to listen on, what to sort the connections based on and also the time interval to refresh the statistics.
+The program lists top 10 connections based on the sort argument in the time interval set by the user.
+It only shows connections with the local machine.
+It shows statistics such as the destination and source IP addresses, ports (if any), protocol used, length of received (Rx) and transmitted (Tx) data and count of packets.
+
+.SH OPTIONS
+.TP
+.B \-i
+Specifies the network interface to capture packets on (e.g., \fIeth0\fR, \fIlo\fR).
+.TP
+.B \-s
+Sort the displayed connections by either bytes (\fIb\fR) or packets (\fIp\fR).
+.TP
+.B \-t
+Set the interval (in seconds) for updating traffic statistics.
+
+.SH EXAMPLES
+Monitor traffic on interface eth0, sort by bytes (default) and update every second (default):
+.RS
+.B isa-top \-i eth0
+.RE
+Sort displayed connections by packet count:
+.RS
+.B isa-top \-i eth0 \-s p
+.RE
+Refresh statistics every 10 seconds:
+.RS
+.B isa-top \-i eth0 \-t 10
+.RE
+Monitor traffic on interface lo, sort by packet count and refresh statistics every 5 seconds:
+.RS
+.B isa-top \-i lo \-s p \-t 5
+.RE
+
+.SH AUTHOR
+Tomáš Barták (login: xbarta51), Created on: 12 November 2024
+
+.SH FILES
+.B main.cpp
+Main source file for the application.
+.B config.cpp
+Configuration file based on arguments and argument parser.
+.B display.cpp
+Displaying and refreshing statistics in terminal.
+.B globals.cpp
+Global instances of classes when needed.
+.B network_interface.cpp
+Manages capturing on a certain network interface based on user arguments.
+.B packet_config.cpp
+Helps save and manage packets into a hash map.
+.B packet_handling.cpp
+Captures and handles individual packets.
+.B sorting.cpp
+Searches for the connections with biggest bandwidth and sorts them based on user arguments.
+.B utility.cpp
+Helper functions.
+
+
+.SH SEE ALSO
+.BR iftop (8),
+.BR getopt (3),
+.BR ncurses (3),
+.BR algorithm (3),
+.BR ntohs (3),
+.BR inet_ntoa (3),
+.BR inet_ntop (3),
+.BR getprotobynumber (3),
+.BR pcap (3),
+.BR getiffaddrs (3)

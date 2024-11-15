@@ -82,6 +82,8 @@ void Utility::clear_data()
         packet.second.setLength(0);
         packet.second.setRx(0);
         packet.second.setTx(0);
+        packet.second.setRxPacketCount(0);
+        packet.second.setTxPacketCount(0);
         packet.second.setPacketCount(0);
     }
 

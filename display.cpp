@@ -66,6 +66,8 @@ void Display::print_packets(int time)
     mvprintw(row, RX_COL, "RX");
     mvprintw(row, TX_COL, "TX");
     mvprintw(row, PACKET_COUNT_COL, "Packet Count");
+    mvprintw(row, RX_PACKET_COUNT_COL, "RX Packet Count");
+    mvprintw(row, TX_PACKET_COUNT_COL, "TX Packet Count");
 
     row++; // to write below the header
 
@@ -85,6 +87,8 @@ void Display::print_packets(int time)
                 mvprintw(row, RX_COL, "%sB/s", utility.convert_data_amount(packet.getRx() / interval).c_str());
                 mvprintw(row, TX_COL, "%sB/s", utility.convert_data_amount(packet.getTx() / interval).c_str());
                 mvprintw(row, PACKET_COUNT_COL, "%sp/s", utility.convert_data_amount(packet.getPacketCount() / interval).c_str());
+                mvprintw(row, RX_PACKET_COUNT_COL, "%sp/s", utility.convert_data_amount(packet.getRxPacketCount() / interval).c_str());
+                mvprintw(row, TX_PACKET_COUNT_COL, "%sp/s", utility.convert_data_amount(packet.getTxPacketCount() / interval).c_str());
             }
             else // if the port is defined, print the IP address and the port
             {
@@ -96,6 +100,8 @@ void Display::print_packets(int time)
                 mvprintw(row, RX_COL, "%sB/s", utility.convert_data_amount(packet.getRx() / interval).c_str());
                 mvprintw(row, TX_COL, "%sB/s", utility.convert_data_amount(packet.getTx() / interval).c_str());
                 mvprintw(row, PACKET_COUNT_COL, "%sp/s", utility.convert_data_amount(packet.getPacketCount() / interval).c_str());
+                mvprintw(row, RX_PACKET_COUNT_COL, "%sp/s", utility.convert_data_amount(packet.getRxPacketCount() / interval).c_str());
+                mvprintw(row, TX_PACKET_COUNT_COL, "%sp/s", utility.convert_data_amount(packet.getTxPacketCount() / interval).c_str());
             }
             row++; // move to the next row
         }

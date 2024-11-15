@@ -48,6 +48,8 @@ void PacketConfig::add_packet(std::string key, Packet packet)
     packet_table[key].setProtocol(packet.getProtocol());
     packet_table[key].addLength(packet.getLength()); // add length of the packet to the current length
     packet_table[key].addPacketCount(); // increment packet count
+    packet_table[key].addRxPacketCount(packet.getRxPacketCount()); // increment received packet count if its incoming (rx_packet_count will be set to 1, if its incoming and to 0, if its outgoing)
+    packet_table[key].addTxPacketCount(packet.getTxPacketCount()); // increment transmitted packet count if its outgoing (tx_packet_count will be set to 1, if its outgoing and to 0, if its incoming)
     packet_table[key].addRx(packet.getRx()); // add received bytes to the current received bytes
     packet_table[key].addTx(packet.getTx()); // add transmitted bytes to the current transmitted bytes
 }
@@ -63,6 +65,7 @@ void PacketConfig::rx_tx(Packet &packet, const std::vector<std::string> &local_i
     if (std::find(local_ips.begin(), local_ips.end(), packet.getSrcIp()) != local_ips.end()) // look whether any of the local IPs match the source IP, then its incoming (Rx)
     {
         packet.setRx(packet.getLength());
+        packet.setRxPacketCount(1); // set the count of received packets
     }
     else if (std::find(local_ips.begin(), local_ips.end(), packet.getDstIp()) != local_ips.end()) // look whether any of the local IPs match the destination IP, then its outgoing (Tx)
     {
@@ -72,6 +75,7 @@ void PacketConfig::rx_tx(Packet &packet, const std::vector<std::string> &local_i
         packet.setSrcIp(temp_dst_ip);
         packet.setDstIp(temp_src_ip);
         packet.setTx(packet.getLength());
+        packet.setTxPacketCount(1); // set the count of transmitted packets
     }
     else // if the packet is neither incoming nor outgoing, only happens if the local IP is not found, then the packet is ignored
     { 

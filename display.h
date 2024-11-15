@@ -24,7 +24,8 @@
 #define RX_COL 105
 #define TX_COL 120
 #define PACKET_COUNT_COL 135
-#define TIMESTAMP_COL 150
+#define RX_PACKET_COUNT_COL 150
+#define TX_PACKET_COUNT_COL 165
 
 /**
  * @brief class for displaying packets in the terminal

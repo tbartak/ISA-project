@@ -17,7 +17,7 @@ class Packet
     public:
         // Constructor
         Packet();
-        Packet(std::string src_ip, int src_port, std::string dst_ip, int dst_port, std::string protocol, int length, int rx, int tx, int packet_count);
+        Packet(std::string src_ip, int src_port, std::string dst_ip, int dst_port, std::string protocol, int length, int rx, int tx, int rx_packet_count, int tx_packet_count, int packet_count);
 
         // Destructor
         ~Packet();
@@ -31,6 +31,8 @@ class Packet
         int getLength() const;
         int getRx() const;
         int getTx() const;
+        int getRxPacketCount() const;
+        int getTxPacketCount() const;
         int getPacketCount() const;
         
         // Setters
@@ -42,6 +44,8 @@ class Packet
         void setLength(int length);
         void setRx(int rx);
         void setTx(int tx);
+        void setRxPacketCount(int rx_packet_count);
+        void setTxPacketCount(int tx_packet_count);
         void setPacketCount(int packet_count);
 
         // Methods
@@ -49,6 +53,8 @@ class Packet
         void addRx(int rx);
         void addTx(int tx);
         void addPacketCount();
+        void addRxPacketCount(int rx_packet_count);
+        void addTxPacketCount(int tx_packet_count);
 
     private:
         std::string src_ip;
@@ -59,6 +65,8 @@ class Packet
         int length;
         int rx;
         int tx;
+        int rx_packet_count;
+        int tx_packet_count;
         int packet_count;
 };
 
