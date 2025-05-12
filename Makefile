@@ -6,7 +6,7 @@ SRC = main.cpp config.cpp utility.cpp packet_info.cpp network_interface.cpp sort
 EXEC = isa-top
 
 all:
-	$(COMPILER) $(FLAGS) -o $(EXEC) $(SRC) -lpcap -lncurses
+	$(COMPILER) $(FLAGS) -o $(EXEC) ./src/$(SRC) -lpcap -lncurses
 
 run:
 	sudo ./$(EXEC) -i eth0
@@ -19,4 +19,4 @@ tar:
 		--exclude='.gitignore' \
 		--exclude='*.tar' \
 		--exclude='$(EXEC)' \
-		*.cpp *.h Makefile manual.pdf isa-top.1 LICENSE scapy/
+		./src/*.cpp ./src/*.h Makefile manual.pdf isa-top.1 LICENSE scapy/

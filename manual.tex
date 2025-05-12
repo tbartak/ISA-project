@@ -1,0 +1,188 @@
+%% projekt ISA
+%% autor: Tomáš Barták
+%% login: xbarta51
+%% date: 15. 11. 2024
+
+\documentclass[a4paper, 11pt, hidelinks]{article}
+\usepackage[left=2cm, top=3cm, text={17cm, 24cm}]{geometry}
+\usepackage[czech]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{times}
+\usepackage[breaklinks]{hyperref}
+\usepackage{url}
+\usepackage{graphicx}
+%% URL break to newline
+\DeclareUrlCommand\url{\def\UrlLeft{<}\def\UrlRight{>}\urlstyle{tt}}
+\renewcommand\UrlBreaks{\do/\do-}
+\begin{document}
+
+\begin{titlepage}
+	\begin{center}
+		\textsc{
+			\Huge{Vysoké učení technické v~Brně}\\
+			\huge{Fakulta informačních technologií\\}
+		}
+		\vspace{\stretch{0.382}}
+		\LARGE{
+			Dokumentace\\
+			\Huge{Aplikace pro získání statistik o síťovém provozu}\\
+		}
+		\vspace{\stretch{0.618}}
+	\end{center}
+	{\Large{
+		\today
+		\hfill
+		Tomáš Barták
+		}
+	}
+\end{titlepage}
+\newpage
+
+\tableofcontents
+\newpage
+
+\section{Úvod}
+Náplní tohoto projektu je vytvořit konzolovou aplikaci pro zobrazení přenosových rychlostí jednotlivých spojení s názvem \emph{isa-top}. Aplikace podporuje zachytávání přenosu na různých rozhraních a také řazení podle bitů či počtu paketů.
+
+\subsection{Teorie k projektu}
+Pro práci na projektu je důležité znát nezbytnou teorii rozhraní, zachytávání paketů, z čeho se paket vůbec skládá, hlavičky různých protokolů a mnoho dalších.
+Tato kapitola se tedy zaměřuje na vysvětlení podstatných pojmů nutných pro vytvoření tohoto projektu.
+
+\subsubsection{Rozhraní}
+Síťové rozhraní je v informatice označení pro fyzické nebo virtuální zařízení, které slouží jako propojení mezi počítačem a soukromou nebo veřejnou sítí. \cite{interface}
+
+\subsubsection{Paket}
+Paket je označení bloku dat přenášených po síti. Každý paket se skládá z řídících dat a samotných uživatelských dat. Řídící data obsahují informace nezbytné pro doručení paketu na správné místo, k tomu je potřeba například zdrojová a cílová adresa, kódy pro detekci chyb. Tyto data se obvykle nalézají v hlavičkách paketů a na jejich konci. Uživatelská data se tedy zpravidla nacházejí mezi nimi. \cite{packet}
+
+\subsubsection{Hlavičky paketů}
+Každý paket obsahuje hlavičku, která udává informace o obsahu paketu, zdroji, cíli a dalších informacích. Hlavička je obvykle strukturovaná a obsahuje různé pole, které obsahují informace o paketu. Hlavička může být různě dlouhá a obsahovat různé informace podle typu paketu.
+
+\subsubsection{Ethernetová hlavička}
+Obsahuje cílovou a zdrojovou MAC adresu \cite{ethernet_header}, což je unikátní identifikátor síťového zařízení.
+
+\subsubsection{IP hlavička}
+Obsahuje informace o verzi IP, zdrojové IP adrese, cílové IP adrese atd. V dnešní době se používají dvě různé verze, a to IPv4 a IPv6. IPv4 je starší verze, která používá 32 bitové IPv4 adresy, zatímco IPv6 používá výrazně větší 128 bitové adresy, které však nejsou zpětně kompatibilní s IPv4. \cite{IP_header}
+
+\subsubsection{TCP a UDP hlavička}
+Tyto hlavičky obsahují informace o zdrojových a cílových portech. Rozdíl mezi TCP a UPD hlavičkami je v tom, že TCP má 20-60 bytů dlouhou hlavičku, zatímco UDP má pouze 8 bytů. TCP zajišťuje spolehlivý přenos dat, zatímco UDP tuto záruku nemá, ale na úkor toho je rychlejší. \cite{TCP_UDP_Header}
+
+\subsubsection{Protokoly}
+Tato podsekce obsahuje výběr často vyskytujících se protokolů.
+
+\subsubsection{ICMPv4}
+Internet Control Message Protocol je protokol, který je posílán v různých situacích, například pokud se data nepodaří doručit. \cite{RFC792}
+
+\subsubsection{ICMPv6}
+ICMPv6 je Internet Control Message Protocol pro IPv6. \cite{RFC4443}
+
+\subsubsection{TCP}
+Transmission Control Protocol je protokol, který zajišťuje spolehlivý přenos dat. \cite{RFC793}
+
+\subsubsection{UDP}
+User Datagram Protocol je protokol, který zajišťuje rychlý, ale nespolehlivý přenos dat. \cite{RFC768}
+
+\newpage
+\section{Návrh aplikace}
+Aplikace je rozvržena do tříd podle jejich funkcionality. 
+
+\subsection*{Diagram tříd}
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.85\linewidth]{class_diagram.png}
+    \caption{Diagram tříd}
+    \label{fig:class_diagram}
+\end{figure}
+
+\subsection{Soubor main}
+Hlavní tělo aplikace je obsaženo v souboru \verb|main|, která zajišťuje čtení a zpracování argumentů předaných skrze příkazovou řádku. Zároveň se stará o otevření zvoleného rozhraní, začátku zachytávání paketů, či vytvoření druhého vlákna, které slouží k výpisu a jeho obnově na obrazovce terminálu a následné ukončení programu.
+
+\subsection{Třída Config}
+Třída \verb|Config| slouží primárně pro nastavení programu dle zadaných argumentů a jejich zpracování.
+
+\subsection{Třída Display}
+Třída \verb|Display| slouží k zobrazení a průběžné aktualizaci výstupů na obrazovku terminálu.
+
+\subsection{Třída Globals}
+Třída \verb|Globals| slouží převážně k zajištění, aby byla využita jedna instance vybraných mezi různými soubory.
+
+\subsection{Třída NetworkInterface}
+Třída \verb|NetworkInterface| v programu zajišťuje odposlech na konkrétním rozhraní zvolené uživatelem při spuštění programu.
+
+\subsection{Třída PacketConfig}
+Třída \verb|PacketConfig| pomáhá s ukládáním jednotlivých hodnot paketů do struktury \emph{packet\_table}.
+
+\subsection{Třída PacketHandling}
+Třída \verb|PacketHandling| zajišťuje samotné odchytávání a zpracovávání jednotlivých paketů.
+
+\subsection{Třída Packet}
+Třída \verb|Packet| slouží k nastavení hodnot do struktury paketu.
+
+\subsection{Třída Sorting}
+Třída \verb|Sorting| vypomáhá k zobrazení 10 spojení s nejvyšším přenosem dat a jejich řazení dle argumentu -s.
+
+\subsection{Třída Utility}
+V neposlední řadě třída \verb|Utility| obsahuje pomocné funkce pro vykonávání programu.
+
+\newpage
+\section{Popis implementace}
+Tato kapitola se bude zabývat zajímavými pasážemi implementace programu a využití jednotlivých zajímavých částí programu.
+
+\subsection{Metoda timer (Display třída)}
+Tato metoda probíhá na odlišném vlákně (\emph{timer\_thread}) od zbytku programu a stará se o obnovu obrazovky terminálu po časovém úseku zvoleného uživatelem prostřednictvím argumentu příkazové řádky terminálu. Tělo metody se opakuje dokud se nezmění hodnota \emph{stop\_flag} na false, což značí, že se uživatel snaží program ukončit. Tato metoda má za úkol vyčkávat pomocí funkce \emph{sleep\_for} po vteřinových úsecích do zvoleného intervalu. Zvolil jsem, aby cyklus probíhal po vteřinových úsecích, aby v případě, že je nastaven přepínač -t například na 10 sekund, tak aby se program přerušil nejpozději po vteřině od ukončení uživatelem a nečekal celých 10 vteřin. Po uplynutí tohoto časového intervalu nastaveného od uživatele se volají funkce pro vyhledání 10 spojení s největším přenosem dat a následně jejich seřazení podle přepínače -b. Nakonec je zavolána funkce \emph{print\_packets}, která tyto seřazené spojení zobrazí na obrazovku terminálu.
+
+\subsection{Metoda packet\_capture (PacketHandling třída)}
+V této metodě je funkce \emph{pcap\_loop}, která do přerušení zachytává pakety na rozhraní, které zvolil uživatel při spouštění programu a zpracovává je callback funkcí s názvem \emph{packet\_handler}, která se stará o zpracovávání těchto zachycených paketů. Zároveň je této callback funkci předána informace o lokálních IP adresách prostřednictvím ukazatele na tato data.
+
+\subsection{Metoda get\_local\_ips (Utility třída)}
+Tato metoda slouží k získání všech IP adres lokálního stroje. Zvolil jsem tuto metodu pro určování, zda-li jsou přenášené pakety příchozí či odchozí. Pro inspiraci této metody sloužily návody \cite{local_ips1} a \cite{local_ips2}. Prvně tato metoda získá seznam všech síťových rozhraní, které jsou následně procházeny v cyklu, dokud nedojde na konec seznamu síťových rozhraní. Uvnitř tohoto cyklu se převedené do řetězců (pomocí funkce \emph{inet\_ntop}) ukládají tyto adresy nalezené v rozhraních do proměnné \emph{local\_ips}.
+
+
+\section{Informace o programu}
+Tato konzolová aplikace je napsána v jazyce C++, pro vytvoření bylo využito mnoho knihoven, mezi nejdůležitější patří základní knihovny jako například \emph{iostream}, \emph{string}, \emph{vector}, následně pro zpracovávání paketů \emph{pcap.h (libpcap)},
+\emph{unordered\_map} pro ukládání paketů do hash mapy, \emph{ncurses} pro zobrazení výstupu na obrazovku terminálu a mnoho dalších.
+
+Program slouží k výpočtu přenosových rychlostí mezi jednotlivými spojeními. Uživatel je schopen prostřednictvím příkazové řádky volit různá rozhraní pomocí přepínače \emph{-i}. Lze také nastavit, zda-li má program řadit tyto spojení podle množství přenesených \emph{bitů} či \emph{paketů} nastavením přepínače \emph{-s} na \emph{b (pro bity)} nebo \emph{p (pro počet paketů)}. V případě, že tento argument není uživatelem zvolen, pak program spojení řadí automaticky podle množství přenesených bitů. Posledním volitelným argumentem je přepínač \emph{-t}, pomocí kterého lze zvolit intervaly pro aktualizaci výpisu spojení. V případě, že není zvolen, program výpis automaticky obnovuje každou vteřinu.
+
+Program vypisuje vždy maximálně 10 spojení s nejvyšším množstvím přenesených bitů či paketů za stanovenou periodu.
+
+Konzolová aplikace pracuje v promiskuitním módu a zachytává tedy jak komunikace s lokálním strojem, tak i zbytek komunikací na síti. Aplikace pracuje v promiskuitním módu pro případ, že například chceme měřit přenosové rychlosti na stroji, který slouží pouze pro přeposílání provozu, tedy pakety nebudou mít ani zdrojovou ani cílovou adresu shodující se s adresou lokální.
+
+\section{Návod na použití}
+Aplikaci lze přeložit pomocí přiloženého \emph{Makefile} souboru příkazem \emph{make}. Po přeložení se vytvoří spustitelný soubor s názvem \emph{isa-top}. Ten lze spouštět dvěma způsoby, a to buď pomocí výše zmíněného souboru Makefile příkazem \emph{make run} nebo zadáním příkazu: 
+\begin{center}
+    \emph{sudo ./isa-top -i <interface\_name> [-s <b $\mid$ p>] [-t <interval\_number>]}.
+\end{center}
+
+Případně pro zobrazení nápovědy (přepínač \emph{-h}):
+\begin{center}
+    \emph{sudo ./isa-top -h.}
+\end{center}
+
+Příkaz \emph{sudo} je potřebný v případech, kdy bez něj není možné přistupovat k rozhraním.
+
+Přepínač \emph{-i} vyžaduje argument s názvem síťového rozhraní, na kterém chce uživatel zachytávat spojení. 
+
+Přepínač \emph{-s} je volitelný a slouží k řazení spojení, a to buď podle bitů zadáním argumentu \emph{b} a nebo podle počtu zachycených paketů zadáním argumentu \emph{p}. V případě, že tento přepínač není uživatelem nastaven, program řadí výsledné spojení automaticky podle počtu přenesených bytů (stejně jako zadáním \emph{-s b}).
+
+Poslední přepínač \emph{-t} je taktéž volitelným přepínačem a slouží k úpravě časového intervalu, který značí, jak často má program obnovovat zobrazování na obrazovku terminálu (aktualizaci statistik). Tento přepínač je navíc, byl využíván především pro účely manuálního testování, viz. níže.
+
+\section{Testování aplikace}
+Pro testování základní komunikace programu a následné zobrazení síťové komunikace jsem využil základní nástroje jako například \emph{ping}, \emph{curl} či \emph{wget}, případně také jejich IPv6 varianty \emph{ping6} a \emph{curl -g -6}. Tyto nástroje byly ze začátku velmi užitečné, protože byly velmi jednoduché na použití a zároveň testovaly různé protokoly. U každého jsem si uložil soubor ve formátu \emph{pcap}, abych byl schopen tyto testy jednoduše opakovat prostřednictvím nástroje \emph{tcpreplay}, který  zachycenou komunikace z pcap souboru vygeneruje znovu bez nutnosti dalšího vytváření síťové komunikace. Tento příkaz se dá použít například následovně: $$\emph{sudo tcpreplay --intf1=<interface\_name> <pcap\_file\_name>}.$$
+
+Dalším nástrojem pro testování programu byl nástroj \emph{iperf3}, který dokáže simulovat TCP a UDP přenosy. Bylo potřeba v jednom terminálu nastavit server, který tuto komunikaci poslouchá a na dalším zařízení nastavit klient, který data odesílá. Tato data, zachycená pomocí aplikace Wireshark, byla následně uložena do souboru pcap pro opakování testů bez nutnosti zakládat znovu toto spojení.
+
+Pro testování různých protokolů jsem využil také vytvořených skriptů v Pythonu komunikujících na rozhraní \emph{lo (loopback)} s využitím knihovny \emph{scapy}, pro generování jednotlivých paketů. Takto jsem testoval protokoly jako \emph{ICMPv4}, \emph{ICMPv6}, \emph{IGMP}, \emph{MLD}, \emph{NDP}, \emph{TCP} a \emph{UDP}. Tyto skripty se dají jednoduše spustit příkazem $$\emph{sudo python3 <nazev\_skriptu>}.$$ Všechny jsem si opět uložil jako pcap soubor pro opakování testování.
+
+Posledním testovaným nástrojem byl externí nástroj \emph{fast-cli}, který slouží ke změření rychlosti přenosu na daném zařízení. To slouží dobře i na generaci komunikace a její následné zobrazení. Opět byla tato komunikace během měření uložena do souboru \emph{speed\_test.pcap}. 
+\newpage
+\section{Výsledky testů}
+Provedené testy byly srovnávány s aplikací \emph{Wireshark}. Protokoly odesílané manuálně pomocí Python skriptů se shodovaly jak na Wiresharku, tak v konzolové aplikaci \emph{isa-top}. Podobně tomu bylo i u manuálních nástrojů jako například \emph{curl}, \emph{ping} či jejich IPv6 variantám. Při spuštění iperf3 pcap souboru a srovnání výstupu mezi aplikací \emph{isa-top} a Wireshark statistikami z daného pcapu byly shodné.
+
+Pro porovnání výsledků se statistikami Wiresharku z pcapu speed-test.pcap bylo potřeba zvýšit MTU (Maximum Transmission Unit), aby bylo schopné takové množství dat úspěšně poslat pomocí tcpreplay. Ovšem i tak je těžké porovnat výsledky s Wiresharkem, protože množství přenesených dat a množství vytvořených spojení je příliš velké, isa-top zobrazuje pouze 10 z nich s největším přenosem.
+
+\newpage
+\bibliography{references}
+\bibliographystyle{czechiso}
+
+\end{document}
